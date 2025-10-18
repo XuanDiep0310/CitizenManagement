@@ -15,6 +15,8 @@ const setupSwagger = require('./config/swagger');
 const authRoutes = require('./routes/auth.routes');
 const citizenRoutes = require('./routes/citizen.routes');
 const userRoutes = require('./routes/user.routes');
+const householdRoutes = require('./routes/household.routes');
+const certificateRoutes = require('./routes/certificate.routes');
 // Import them cac routes khac o day
 
 const app = express();
@@ -86,6 +88,8 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/citizens', citizenRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/households', householdRoutes);
+app.use('/api', certificateRoutes); // Birth & Death certificates
 // Mount them cac routes khac o day
 // app.use('/api/households', householdRoutes);
 // app.use('/api/temporary-residences', tempResidenceRoutes);
