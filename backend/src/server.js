@@ -17,6 +17,7 @@ const citizenRoutes = require('./routes/citizen.routes');
 const userRoutes = require('./routes/user.routes');
 const householdRoutes = require('./routes/household.routes');
 const certificateRoutes = require('./routes/certificate.routes');
+const temporaryRoutes = require('./routes/temporary.routes');
 // Import them cac routes khac o day
 
 const app = express();
@@ -90,6 +91,7 @@ app.use('/api/citizens', citizenRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/households', householdRoutes);
 app.use('/api', certificateRoutes); // Birth & Death certificates
+app.use('/api', temporaryRoutes); // Temporary Residence & Absence
 // Mount them cac routes khac o day
 // app.use('/api/households', householdRoutes);
 // app.use('/api/temporary-residences', tempResidenceRoutes);
