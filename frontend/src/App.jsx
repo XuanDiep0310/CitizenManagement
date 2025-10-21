@@ -9,7 +9,11 @@ import NotFound from "./components/NotFound";
 import HomePage from "./pages/home";
 import LoginPage from "./pages/login";
 import CitizensTable from "./components/Admin/Citizens/CitizensTable";
-
+import { useDispatch, useSelector } from "react-redux";
+import Loading from "./components/Loading";
+import { useEffect } from "react";
+import { callFetchAccount, callUserById } from "./services/api.service";
+import { doGetAccountAction } from "./redux/account/accountSlice";
 const Layout = () => {
   return (
     <>
@@ -35,44 +39,80 @@ const Layout = () => {
     </>
   );
 };
-
+const routes = [
+  {
+    path: "/",
+    element: <Layout />,
+    errorElement: <NotFound />,
+    children: [
+      {
+        index: true,
+        element: <HomePage />,
+      },
+    ],
+  },
+  {
+    path: "/admin",
+    element: <LayoutAdmin />,
+    errorElement: <NotFound />,
+    children: [
+      { index: true, element: <AdminPage /> },
+      { path: "citizen", element: <CitizensTable /> },
+      { path: "household", element: <div>household</div> },
+      { path: "residence", element: <div>residence</div> },
+      { path: "certificates", element: <div>certificates</div> },
+      { path: "reports", element: <div>reports</div> },
+    ],
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
+  },
+];
 const App = () => {
-  const router = createBrowserRouter([
-    {
-      path: "/",
-      element: <Layout />,
-      errorElement: <NotFound />,
-      children: [
-        {
-          index: true,
-          element: <HomePage />,
-        },
-      ],
-    },
-    {
-      path: "/admin",
-      element: <LayoutAdmin />,
-      errorElement: <NotFound />,
-      children: [
-        { index: true, element: <AdminPage /> },
-        { path: "citizen", element: <CitizensTable /> },
-        { path: "household", element: <div>household</div> },
-        { path: "residence", element: <div>residence</div> },
-        { path: "certificates", element: <div>certificates</div> },
-        { path: "reports", element: <div>reports</div> },
-      ],
-    },
-    {
-      path: "/login",
-      element: <LoginPage />,
-    },
-  ]);
+  const dispatch = useDispatch();
+  const isLoading = useSelector((state) => state.account.isLoading);
+  const router = createBrowserRouter(routes);
+  const getAccount = async () => {
+    if (
+      window.location.pathname === "/login" ||
+      window.location.pathname === "/register"
+    )
+      return;
+    const res = await callFetchAccount();
+    if (res && res?.data) {
+      const resUser = await callUserById(res.data.userId);
+
+      const dataUser = {
+        email: resUser.data.email,
+        phone: resUser.data.phone,
+        fullName: resUser.data.full_name,
+        role: resUser.data.role_name,
+        userId: resUser.data.user_id,
+        username: resUser.data.username,
+      };
+      dispatch(doGetAccountAction(dataUser));
+    }
+  };
+
+  useEffect(() => {
+    getAccount();
+  }, []);
+
   return (
     <>
       {/* <a href="https://react.dev" target="_blank">
         <img src={reactLogo} className="logo react" alt="React logo" />
       </a> */}
-      <RouterProvider router={router} />
+
+      {isLoading === false ||
+      window.location.pathname === "/login" ||
+      window.location.pathname === "/register" ||
+      window.location.pathname === "/" ? (
+        <RouterProvider router={router} />
+      ) : (
+        <Loading />
+      )}
     </>
   );
 };

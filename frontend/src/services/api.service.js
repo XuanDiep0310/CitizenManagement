@@ -13,7 +13,7 @@ const registerUserAPI = (fullName, email, password, phone) => {
 };
 
 const loginUserAPI = (username, password) => {
-  const URL_BACKEND = "/api/v1/auth/login";
+  const URL_BACKEND = "/api/auth/login";
   const data = {
     username: username,
     password: password,
@@ -23,9 +23,14 @@ const loginUserAPI = (username, password) => {
   return res;
 };
 const callFetchAccount = () => {
-  const URL_BACKEND = "/api/v1/auth/account";
+  const URL_BACKEND = "/api/auth/me";
   return axios.get(URL_BACKEND);
 };
+const callUserById = (id) => {
+  const URL_BACKEND = `/api/users/${id}`;
+  return axios.get(URL_BACKEND);
+};
+
 const callLogout = () => {
   const URL_BACKEND = "/api/v1/auth/logout";
   return axios.post(URL_BACKEND);
@@ -228,4 +233,5 @@ export {
   callOnChangePassWord,
   callOrderApi,
   callFetchDashBoard,
+  callUserById,
 };

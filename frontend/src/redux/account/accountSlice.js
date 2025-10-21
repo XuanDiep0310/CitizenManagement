@@ -8,8 +8,8 @@ const initialState = {
     phone: "",
     fullName: "",
     role: "",
-    avatar: "",
-    id: "",
+    userId: "",
+    username: "",
   },
 };
 

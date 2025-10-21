@@ -14,14 +14,15 @@ instance.defaults.headers.common = {
 };
 
 const handleRefreshToken = async () => {
-  // const res = await instance.get("/api/v1/auth/refresh");
-  // console.log(res);
-  // if (res && res?.data) return res.data.access_token;
+  // const refreshToken = localStorage.getItem("refresh_token");
+  // const res = await instance.post("/api/auth/refresh", { refreshToken });
+  // if (res && res?.data) return res.data.accessToken;
   // return null;
 
   return await mutex.runExclusive(async () => {
-    const res = await instance.get("/api/v1/auth/refresh");
-    if (res && res?.data) return res.data.access_token;
+    const refreshToken = localStorage.getItem("refresh_token");
+    const res = await instance.post("/api/auth/refresh", { refreshToken });
+    if (res && res?.data) return res.data.accessToken;
     return null;
   });
 };
@@ -76,16 +77,18 @@ instance.interceptors.response.use(
       }
     }
 
-    if (
-      error.config &&
-      error.response &&
-      +error.response.status === 400 &&
-      error.config.url === "/api/v1/auth/refresh"
-    ) {
-      window.location.href = "/login";
-    }
+    // if (
+    //   error.config &&
+    //   error.response &&
+    //   +error.response.status === 500 &&
+    //   error.config.url === "/api/auth/refresh"
+    // ) {
+    //   window.location.href = "/login";
+    // }
 
-    return error?.response.data ?? Promise.reject(error);
+    // return error?.response.data ?? Promise.reject(error);
+    // console.log(error);
+    return error;
   }
 );
 export default instance;
