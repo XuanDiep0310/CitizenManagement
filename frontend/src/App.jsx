@@ -11,7 +11,7 @@ import LoginPage from "./pages/login";
 import CitizensTable from "./components/Admin/Citizens/CitizensTable";
 import { useDispatch, useSelector } from "react-redux";
 import Loading from "./components/Loading";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { callFetchAccount, callUserById } from "./services/api.service";
 import { doGetAccountAction } from "./redux/account/accountSlice";
 const Layout = () => {
@@ -73,6 +73,7 @@ const App = () => {
   const dispatch = useDispatch();
   const isLoading = useSelector((state) => state.account.isLoading);
   const router = createBrowserRouter(routes);
+  const [accountUser, setAccountUser] = useState();
   const getAccount = async () => {
     if (
       window.location.pathname === "/login" ||
@@ -82,16 +83,18 @@ const App = () => {
     const res = await callFetchAccount();
     if (res && res?.data) {
       const resUser = await callUserById(res.data.userId);
-
-      const dataUser = {
-        email: resUser.data.email,
-        phone: resUser.data.phone,
-        fullName: resUser.data.full_name,
-        role: resUser.data.role_name,
-        userId: resUser.data.user_id,
-        username: resUser.data.username,
-      };
-      dispatch(doGetAccountAction(dataUser));
+      setAccountUser(resUser);
+      if (resUser) {
+        const dataUser = {
+          email: resUser.data.email,
+          phone: resUser.data.phone,
+          fullName: resUser.data.full_name,
+          role: resUser.data.role_name,
+          userId: resUser.data.user_id,
+          username: resUser.data.username,
+        };
+        dispatch(doGetAccountAction({ user: dataUser }));
+      }
     }
   };
 

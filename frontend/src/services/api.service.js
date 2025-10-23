@@ -1,17 +1,5 @@
 import axios from "../utils/axios-customize";
 
-const registerUserAPI = (fullName, email, password, phone) => {
-  const URL_BACKEND = "/api/v1/user/register";
-  const data = {
-    fullName: fullName,
-    email: email,
-    password: password,
-    phone: phone,
-  };
-  const res = axios.post(URL_BACKEND, data);
-  return res;
-};
-
 const loginUserAPI = (username, password) => {
   const URL_BACKEND = "/api/auth/login";
   const data = {
@@ -32,9 +20,10 @@ const callUserById = (id) => {
 };
 
 const callLogout = () => {
-  const URL_BACKEND = "/api/v1/auth/logout";
+  const URL_BACKEND = "/api/auth/logout";
   return axios.post(URL_BACKEND);
 };
+
 const callListUserAPI = (query) => {
   const URL_BACKEND = `/api/v1/user?${query}`;
   const res = axios.get(URL_BACKEND);
@@ -210,7 +199,6 @@ const callFetchDashBoard = () => {
   return res;
 };
 export {
-  registerUserAPI,
   loginUserAPI,
   callFetchAccount,
   callLogout,

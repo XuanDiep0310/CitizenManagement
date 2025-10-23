@@ -21,11 +21,11 @@ const LoginPage = () => {
       if (res && res.data) {
         localStorage.setItem("access_token", res.data.accessToken);
         localStorage.setItem("refresh_token", res.data.refreshToken);
-        dispatch(doLoginAction(res.data.user));
         notification.success({
           message: "Sign in",
           description: "Signed in successfully.",
         });
+        dispatch(doLoginAction(res.data.user));
         navigate("/");
       } else {
         notification.error({

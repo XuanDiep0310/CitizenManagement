@@ -40,17 +40,16 @@ export const accountSlice = createSlice({
         phone: "",
         fullName: "",
         role: "",
-        avatar: "",
         id: "",
       };
     },
     doUpdateUserInfoAction: (state, action) => {
-      state.user.avatar = action.payload.avatar;
-      state.user.phone = action.payload.phone;
-      state.user.fullName = action.payload.fullName;
+      // state.user.avatar = action.payload.avatar;
+      // state.user.phone = action.payload.phone;
+      // state.user.fullName = action.payload.fullName;
     },
     doUploadAvatarAction: (state, action) => {
-      state.tempAvatar = action.payload.avatar;
+      // state.tempAvatar = action.payload.avatar;
     },
   },
 

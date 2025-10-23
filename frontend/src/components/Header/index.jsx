@@ -1,11 +1,67 @@
 import { Users, LogIn } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router";
+import { callLogout } from "../../services/api.service";
+import { doLogoutAction } from "../../redux/account/accountSlice";
+import { Dropdown, message } from "antd";
 
 const Header = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const isAuthenticated = useSelector((state) => state.account.isAuthenticated);
+  const user = useSelector((state) => state.account.user);
+  const fullName = user.fullName;
+
   const handleLogin = () => {
     navigate("/login");
   };
+
+  const handleLogout = async () => {
+    const res = await callLogout();
+    console.log(res);
+    if (res) {
+      dispatch(doLogoutAction());
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      message.success("Đăng xuất thành công");
+      navigate("/");
+    }
+  };
+  const items = [
+    {
+      key: "HomePage",
+      label: <Link to="/">Home Page</Link>,
+    },
+    // {
+    //   key: "manageUser",
+    //   label: (
+    //     <label
+    //       style={{ cursor: "pointer" }}
+    //       onClick={() => setIsModalOpenUser(true)}
+    //     >
+    //       Quản lý tài khoản
+    //     </label>
+    //   ),
+    // },
+
+    {
+      key: "logout",
+      label: (
+        <label style={{ cursor: "pointer" }} onClick={handleLogout}>
+          Logout
+        </label>
+      ),
+      // icon: <IoLogOutOutline />,
+    },
+  ];
+  if (user?.role === "Admin") {
+    items.unshift({
+      label: <Link to="/admin">Page Manage</Link>,
+      key: "admin",
+    });
+  }
+
   return (
     <header className="header">
       <div className="header-content">
@@ -16,10 +72,19 @@ const Header = () => {
           <span className="logo-text">Citizen Management System</span>
         </div>
         <div className="header-actions">
-          <button className="login-btn" onClick={handleLogin}>
-            <LogIn size={18} />
-            Login
-          </button>
+          {isAuthenticated === true ? (
+            <div style={{ cursor: "pointer" }}>
+              <Dropdown menu={{ items }}>
+                <a onClick={(e) => e.preventDefault()}>{fullName}</a>
+              </Dropdown>
+            </div>
+          ) : (
+            <button className="login-btn" onClick={handleLogin}>
+              <LogIn size={18} />
+              Login
+            </button>
+          )}
+
           <button className="access-btn">Access System</button>
         </div>
       </div>
