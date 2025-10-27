@@ -14,6 +14,9 @@ import Loading from "./components/Loading";
 import { useEffect, useState } from "react";
 import { callFetchAccount, callUserById } from "./services/api.service";
 import { doGetAccountAction } from "./redux/account/accountSlice";
+import HouseholdTable from "./components/Admin/Household/HouseholdTable";
+import HouseholdDetail from "./components/Admin/Household/HouseholdDetail";
+import HouseholdList from "./components/Admin/Household/HouseholdList";
 const Layout = () => {
   return (
     <>
@@ -58,7 +61,14 @@ const routes = [
     children: [
       { index: true, element: <AdminPage /> },
       { path: "citizen", element: <CitizensTable /> },
-      { path: "household", element: <div>household</div> },
+      {
+        path: "household",
+        element: <HouseholdList />,
+        children: [
+          { index: true, element: <HouseholdTable /> },
+          { path: ":id", element: <HouseholdDetail /> },
+        ],
+      },
       { path: "residence", element: <div>residence</div> },
       { path: "certificates", element: <div>certificates</div> },
       { path: "reports", element: <div>reports</div> },

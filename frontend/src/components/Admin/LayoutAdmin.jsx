@@ -104,11 +104,11 @@ const LayoutAdmin = () => {
         "certificates",
         "reports",
       ];
-      const currenRoute = allRoutes.find(
-        (item) => `/admin/${item}` === location.pathname
+      const currentRoute = allRoutes.find((item) =>
+        location.pathname.startsWith(`/admin/${item}`)
       );
-      if (currenRoute) {
-        setCurrent(currenRoute);
+      if (currentRoute) {
+        setCurrent(currentRoute);
       } else {
         setCurrent("dashboard");
       }
