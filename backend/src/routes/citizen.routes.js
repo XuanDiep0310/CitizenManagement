@@ -142,6 +142,48 @@ router.get(
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     NewCitizen:
+ *       type: object
+ *       required:
+ *         - citizen_code
+ *         - full_name
+ *         - date_of_birth
+ *         - gender
+ *         - permanent_address
+ *         - ward_id
+ *       properties:
+ *         citizen_code:
+ *           type: string
+ *           example: "012345678"
+ *         full_name:
+ *           type: string
+ *           example: "Nguyễn Văn A"
+ *         date_of_birth:
+ *           type: string
+ *           format: date
+ *           example: "1990-01-01"
+ *         gender:
+ *           type: string
+ *           example: "Male"
+ *         permanent_address:
+ *           type: string
+ *           example: "123 Lê Lợi, Phường 1"
+ *         ward_id:
+ *           type: integer
+ *           example: 1
+ *         phone:
+ *           type: string
+ *           example: "0912345678"
+ *         email:
+ *           type: string
+ *           example: "nvA@example.com"
+ */
+/**
+
+/**
+ * @swagger
  * /api/citizens:
  *   post:
  *     summary: Them cong dan moi
@@ -153,14 +195,7 @@ router.get(
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - citizen_code
- *               - full_name
- *               - date_of_birth
- *               - gender
- *               - permanent_address
- *               - ward_id
+ *             $ref: '#/components/schemas/NewCitizen'
  *     responses:
  *       201:
  *         description: Them thanh cong
