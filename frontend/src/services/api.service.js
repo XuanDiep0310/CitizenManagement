@@ -24,6 +24,17 @@ const callLogout = () => {
   return axios.post(URL_BACKEND);
 };
 
+const callListCitizensAPI = (query) => {
+  const URL_BACKEND = `api/citizens?${query}`;
+  const res = axios.get(URL_BACKEND);
+  return res;
+};
+const deleteCitizenAPI = (id) => {
+  const URL_BACKEND = `api/citizens/${id}`;
+  const res = axios.delete(URL_BACKEND);
+  return res;
+};
+
 const callListUserAPI = (query) => {
   const URL_BACKEND = `/api/v1/user?${query}`;
   const res = axios.get(URL_BACKEND);
@@ -222,4 +233,6 @@ export {
   callOrderApi,
   callFetchDashBoard,
   callUserById,
+  callListCitizensAPI,
+  deleteCitizenAPI,
 };

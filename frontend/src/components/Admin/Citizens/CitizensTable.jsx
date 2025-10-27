@@ -1,268 +1,304 @@
-import React, { useState } from "react";
-import { Search, Plus, Eye, Edit2, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Table,
+  Input,
+  Button,
+  Tag,
+  Popconfirm,
+  Space,
+  message,
+  notification,
+} from "antd";
+import {
+  PlusOutlined,
+  EyeOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
+import dayjs from "dayjs";
+import {
+  callListCitizensAPI,
+  deleteCitizenAPI,
+} from "../../../services/api.service";
 import "../../../assets/styles/citizensTable.scss";
-const CitizensTable = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+import CitizenModalDetail from "./CitizenModalDetail";
+import CitizenModalCreate from "./CitizenModalCreate";
 
-  const citizens = [
+const DEBOUNCE_MS = 400;
+
+const statusColor = (s) => {
+  switch (s) {
+    case "Active":
+      return "green";
+    case "Pending":
+      return "gold";
+    case "Inactive":
+      return "red";
+    default:
+      return "blue";
+  }
+};
+
+export default function CitizensTable() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pageSize, setPageSize] = useState(5);
+  const [current, setCurrent] = useState(1);
+  const [total, setTotal] = useState(100);
+  const [citizensData, setCitizensData] = useState([]);
+  const [loadingTable, setLoadingTable] = useState(false);
+
+  // const [sortQuery, setSortQuery] = useState("");
+  // const [filter, setFilter] = useState("");
+
+  const [citizenDetail, setCitizenDetail] = useState();
+  const [isDetailCitizenOpen, setIsDetailCitizenOpen] = useState(false);
+
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  // const [isModalImportOpen, setIsModalImportOpen] = useState(false);
+  const fetchCitizen = async () => {
+    setLoadingTable(true);
+    let query = `page=${current}&pageSize=${pageSize}`;
+    // if (filter) {
+    //   query += `${filter}`;
+    // }
+    // if (sortQuery) {
+    //   query += `&${sortQuery}`;
+    // }
+    const res = await callListCitizensAPI(query);
+    if (res && res.data) {
+      setCurrent(+res.pagination.page);
+      setPageSize(+res.pagination.pageSize);
+      setTotal(res.pagination.totalCount);
+      setCitizensData(res.data);
+    }
+    setLoadingTable(false);
+  };
+
+  useEffect(() => {
+    fetchCitizen();
+  }, [current, pageSize]);
+  // , sortQuery, filter
+
+  const handleOnChangePagi = (pagination, filters, sorter) => {
+    if (
+      pagination &&
+      pagination.pageSize &&
+      +pagination.pageSize !== +pageSize
+    ) {
+      setPageSize(+pagination.pageSize);
+      setCurrent(1);
+    }
+
+    if (pagination && pagination.current && +pagination.current !== +current) {
+      setCurrent(+pagination.current);
+      console.log(pagination.current);
+    }
+    // console.log(">>>", pagination, filters, sorter, extra);
+    if (sorter && sorter.order) {
+      // const q =
+      //   sorter.order === "ascend"
+      //     ? `sort=${sorter.field}`
+      //     : `sort=-${sorter.field}`;
+      // if (q) setSortQuery(q);
+    }
+  };
+  // const handleExport = () => {
+  //   if (userData.length > 0) {
+  //     const worksheet = XLSX.utils.json_to_sheet(userData);
+  //     const workbook = XLSX.utils.book_new();
+  //     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+  //     XLSX.writeFile(workbook, "ExportUser.xlsx");
+  //   }
+  // };
+
+  const handleView = (record) => {
+    setCitizenDetail(record);
+    setIsDetailCitizenOpen(true);
+  };
+  const handleEdit = (id) => {
+    message.info(`Edit citizen: ${id}`);
+  };
+  const handleDelete = async (id) => {
+    const res = await deleteCitizenAPI(id);
+    console.log(res);
+    if (res && res.success === true) {
+      notification.success({
+        message: "Delete Citizen",
+        description: "success!",
+      });
+      await fetchCitizen();
+    } else {
+      notification.error({
+        message: "error",
+        description: JSON.stringify(res.error.message),
+      });
+    }
+  };
+  const columns = [
     {
-      id: 1,
-      name: "Nguyễn Văn A",
-      idNumber: "001234567890",
-      dateOfBirth: "1/15/1990",
-      location: "Hà Nội",
-      status: "ACTIVE",
+      title: "Name",
+      dataIndex: "full_name",
+      key: "full_name",
+      // ellipsis: true,
+      render: (t) => <span style={{ fontWeight: 500 }}>{t}</span>,
     },
     {
-      id: 2,
-      name: "Trần Thị B",
-      idNumber: "001234567891",
-      dateOfBirth: "5/20/1992",
-      location: "TP. Hồ Chí Minh",
-      status: "ACTIVE",
+      title: "ID Citizen",
+      dataIndex: "citizen_code",
+      key: "citizen_code",
+      render: (t) => <code style={{ color: "rgba(0,0,0,.65)" }}>{t}</code>,
     },
     {
-      id: 3,
-      name: "Lê Văn C",
-      idNumber: "001234567892",
-      dateOfBirth: "3/10/1988",
-      location: "Đà Nẵng",
-      status: "ACTIVE",
+      title: "Date of Birth",
+      dataIndex: "date_of_birth",
+      key: "date_of_birth",
+      sorter: false,
+      render: (value) => (value ? dayjs(value).format("DD/MM/YYYY") : "—"),
     },
     {
-      id: 4,
-      name: "Phạm Thị D",
-      idNumber: "001234567893",
-      dateOfBirth: "7/25/1995",
-      location: "Hà Nội",
-      status: "ACTIVE",
+      title: "Location",
+      dataIndex: "permanent_address",
+      key: "lpermanent_address",
+      ellipsis: true,
     },
     {
-      id: 5,
-      name: "Hoàng Văn E",
-      idNumber: "001234567894",
-      dateOfBirth: "12/5/1991",
-      location: "Cần Thơ",
-      status: "ACTIVE",
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (s) => (
+        <Tag color={statusColor(s)} style={{ fontWeight: 600 }}>
+          {s}
+        </Tag>
+      ),
+      filters: [
+        { text: "Active", value: "Active" },
+        { text: "Pending", value: "Pending" },
+        { text: "Inactive", value: "Inactive" },
+      ],
+      onFilter: (value, record) => record.status === value,
     },
     {
-      id: 6,
-      name: "Võ Thị F",
-      idNumber: "001234567895",
-      dateOfBirth: "9/18/1993",
-      location: "TP. Hồ Chí Minh",
-      status: "ACTIVE",
-    },
-    {
-      id: 7,
-      name: "Đặng Văn G",
-      idNumber: "001234567896",
-      dateOfBirth: "4/22/1989",
-      location: "Hải Phòng",
-      status: "ACTIVE",
-    },
-    {
-      id: 8,
-      name: "Bùi Thị H",
-      idNumber: "001234567897",
-      dateOfBirth: "11/30/1994",
-      location: "Huế",
-      status: "ACTIVE",
+      title: "Actions",
+      key: "actions",
+      fixed: "right",
+      width: 160,
+      render: (_, r) => (
+        <Space>
+          <Button
+            type="text"
+            icon={<EyeOutlined />}
+            onClick={() => handleView(r)}
+          />
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(r.id)}
+          />
+          <Popconfirm
+            title="Delete citizen"
+            description="Are you sure you want to delete this citizen?"
+            okType="danger"
+            onConfirm={() => handleDelete(r.citizen_id)}
+          >
+            <Button type="text" danger icon={<DeleteOutlined />} />
+          </Popconfirm>
+        </Space>
+      ),
     },
   ];
 
-  const filteredCitizens = citizens.filter(
-    (citizen) =>
-      citizen.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      citizen.idNumber.includes(searchTerm)
-  );
-
-  const totalPages = Math.ceil(filteredCitizens.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentCitizens = filteredCitizens.slice(startIndex, endIndex);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  const handlePrevious = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handleItemsPerPageChange = (e) => {
-    setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1); // Reset to first page when changing items per page
-  };
-
-  const handleView = (id) => {
-    console.log("View citizen:", id);
-  };
-
-  const handleEdit = (id) => {
-    console.log("Edit citizen:", id);
-  };
-
-  const handleDelete = (id) => {
-    console.log("Delete citizen:", id);
-  };
-
   return (
-    <div className="citizens-container">
-      <div className="page-header">
-        <div className="header-content">
-          <h1 className="page-title">Citizens</h1>
-          <p className="page-subtitle">
-            Manage citizen records and information
-          </p>
-        </div>
-        <button className="add-btn">
-          <Plus size={20} />
-          Add Citizen
-        </button>
-      </div>
-
-      <div className="content-card">
-        <div className="card-header">
-          <div className="card-header-text">
-            <h2 className="card-title">Citizen Records</h2>
-            <p className="card-subtitle">
-              View and manage all citizen information
+    <>
+      <div className="citizens-container">
+        <div className="page-header">
+          <div className="header-content">
+            <h1 className="page-title">Citizens</h1>
+            <p className="page-subtitle">
+              Manage citizen records and information
             </p>
           </div>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setIsCreateOpen(true)}
+          >
+            Add Citizen
+          </Button>
         </div>
 
-        <div className="search-container">
-          <Search size={20} className="search-icon" />
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Search by name or ID number..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+        <div className="content-card">
+          <div className="card-header">
+            <div className="card-header-text">
+              <h2 className="card-title">Citizen Records</h2>
+              <p className="card-subtitle">
+                View and manage all citizen information
+              </p>
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginBottom: 16,
+              display: "flex",
+              gap: 20,
+              width: "100%",
+            }}
+          >
+            <Input
+              allowClear
+              placeholder="Search by name or ID number..."
+              value={searchTerm}
+              // onChange={(e) => {
+              //   setSearchTerm(e.target.value);
+              //   setCurrent(1);
+              // }}
+              prefix={<SearchOutlined />}
+              // style={{ flex: 1, minWidth: 0 }}
+            />
+          </div>
+
+          <Table
+            rowKey="id"
+            columns={columns}
+            dataSource={citizensData}
+            loading={loadingTable}
+            onChange={handleOnChangePagi}
+            pagination={{
+              current,
+              pageSize,
+              total,
+              showSizeChanger: true,
+              pageSizeOptions: [5, 10, 20, 50],
+
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} trên ${total} rows`,
+            }}
+            scroll={{ x: 900 }}
+            size="middle"
+            sticky
           />
         </div>
-
-        <div className="table-container">
-          <table className="citizens-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>ID Number</th>
-                <th>Date of Birth</th>
-                <th>Location</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentCitizens.map((citizen) => (
-                <tr key={citizen.id}>
-                  <td className="name-cell">{citizen.name}</td>
-                  <td className="id-cell">{citizen.idNumber}</td>
-                  <td>{citizen.dateOfBirth}</td>
-                  <td>{citizen.location}</td>
-                  <td>
-                    <span className="status-badge">{citizen.status}</span>
-                  </td>
-                  <td>
-                    <div className="actions-cell">
-                      <button
-                        className="action-btn view-btn"
-                        onClick={() => handleView(citizen.id)}
-                        title="View"
-                      >
-                        <Eye size={18} />
-                      </button>
-                      <button
-                        className="action-btn edit-btn"
-                        onClick={() => handleEdit(citizen.id)}
-                        title="Edit"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                      <button
-                        className="action-btn delete-btn"
-                        onClick={() => handleDelete(citizen.id)}
-                        title="Delete"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="pagination-container">
-          <div className="pagination-left">
-            <div className="items-per-page">
-              <span className="items-label">Show</span>
-              <select
-                className="items-select"
-                value={itemsPerPage}
-                onChange={handleItemsPerPageChange}
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
-              <span className="items-label">entries</span>
-            </div>
-            <div className="pagination-info">
-              Showing {startIndex + 1} to{" "}
-              {Math.min(endIndex, filteredCitizens.length)} of{" "}
-              {filteredCitizens.length} entries
-            </div>
-          </div>
-          <div className="pagination-controls">
-            <button
-              className="pagination-btn"
-              onClick={handlePrevious}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </button>
-            <div className="pagination-numbers">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    className={`pagination-number ${
-                      currentPage === page ? "active" : ""
-                    }`}
-                    onClick={() => handlePageChange(page)}
-                  >
-                    {page}
-                  </button>
-                )
-              )}
-            </div>
-            <button
-              className="pagination-btn"
-              onClick={handleNext}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </button>
-          </div>
-        </div>
       </div>
-    </div>
+      <CitizenModalDetail
+        citizenDetail={citizenDetail}
+        setCitizenDetail={setCitizenDetail}
+        isDetailCitizenOpen={isDetailCitizenOpen}
+        setIsDetailCitizenOpen={setIsDetailCitizenOpen}
+      />
+      <CitizenModalCreate
+        isCreateOpen={isCreateOpen}
+        setIsCreateOpen={setIsCreateOpen}
+        fetchCitizen={fetchCitizen}
+      />
+      {/* <CitizenModalUpdate
+              isModalOpenUpdate={isModalOpenUpdate}
+              setIsModalOpenUpdate={setIsModalOpenUpdate}
+              bookUpdate={bookUpdate}
+              setBookUpdate={setBookUpdate}
+              fetchBook={fetchBook}
+            /> */}
+    </>
   );
-};
-
-export default CitizensTable;
+}

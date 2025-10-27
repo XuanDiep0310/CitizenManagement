@@ -1,6 +1,13 @@
+/* ===== Theme tokens (local) ===== */
+$primary: #1a4d8f;
+$primary-hover: #153d73;
+$text-strong: #1a1a1a;
+$text-muted: #666;
+$bg-page: #f5f5f5;
+
 .citizens-container {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: $bg-page;
   padding: 32px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
@@ -20,42 +27,21 @@
 .page-title {
   font-size: 32px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: $text-strong;
   margin-bottom: 8px;
 }
 
 .page-subtitle {
   font-size: 16px;
-  color: #666;
-}
-
-.add-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #1a4d8f;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: inherit;
-}
-
-.add-btn:hover {
-  background: #153d73;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(26, 77, 143, 0.3);
+  color: $text-muted;
 }
 
 .content-card {
-  background: white;
+  background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
+  padding: 0 20px;
 }
 
 .card-header {
@@ -63,286 +49,134 @@
 }
 
 .card-header-text {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .card-title {
   font-size: 18px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: $text-strong;
   margin-bottom: 4px;
 }
 
 .card-subtitle {
   font-size: 14px;
-  color: #666;
+  color: $text-muted;
 }
 
+/* ===== AntD: Buttons / Input ===== */
+.citizens-container {
+  .ant-btn-primary {
+    background: $primary;
+    border-color: $primary;
+
+    &:hover,
+    &:focus {
+      background: $primary-hover !important;
+      border-color: $primary-hover !important;
+      box-shadow: 0 4px 12px rgba(26, 77, 143, 0.28);
+      transform: translateY(-1px);
+    }
+  }
+
+  .ant-input,
+  .ant-input-affix-wrapper {
+    height: 44px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    // justify-content: space-between;
+
+    &:hover {
+      border-color: $primary;
+    }
+    &:focus,
+    &.ant-input-affix-wrapper-focused {
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba(26, 77, 143, 0.1);
+    }
+    .ant-input-prefix {
+      font-size: 20px;
+      margin-right: 20px;
+    }
+  }
+}
+
+/* ===== AntD: Table ===== */
+.citizens-container {
+  .ant-table {
+    border-radius: 0 0 12px 12px; // match card
+  }
+
+  .ant-table-thead > tr > th {
+    background: #fafafa;
+    color: $text-strong;
+    font-weight: 600;
+    padding: 16px 24px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .ant-table-tbody > tr > td {
+    padding: 20px 24px;
+    font-size: 14px;
+    color: #333;
+    border-bottom: 1px solid #f5f5f5;
+  }
+
+  .ant-table-tbody > tr:hover > td {
+    background: #fafafa;
+  }
+
+  /* monospace cho cột mã định danh nếu dùng className="id-cell" trong column render */
+  .id-cell {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      "Liberation Mono", "Courier New", monospace;
+    color: #666;
+  }
+}
+
+/* ===== AntD: Tag status (nếu muốn subtle) ===== */
+.citizens-container {
+  .ant-tag {
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 2px 10px;
+  }
+}
+
+/* ===== AntD: Pagination (bên dưới Table) ===== */
+.citizens-container {
+  .ant-pagination {
+    padding: 16px 24px;
+    border-top: 1px solid #f0f0f0;
+
+    .ant-pagination-item-active {
+      background: $primary;
+      border-color: $primary;
+
+      a {
+        color: #fff !important;
+      }
+    }
+
+    .ant-pagination-item:hover,
+    .ant-pagination-next:hover .ant-pagination-item-link,
+    .ant-pagination-prev:hover .ant-pagination-item-link {
+      border-color: $primary;
+      color: $primary;
+    }
+  }
+}
+
+/* ===== Legacy helpers giữ tương thích (nếu còn dùng ngoài AntD) ===== */
 .search-container {
-  position: relative;
-  padding: 0 24px 24px;
+  padding: 0 24px 16px;
 }
 
-.search-icon {
-  position: absolute;
-  left: 37px;
-  top: 32%;
-  transform: translateY(-50%);
-  color: #999;
-  pointer-events: none;
-}
+/* Gộp icon search vào AntD Input nếu bạn dùng <Input prefix={<SearchOutlined />} />,
+   không cần .search-icon/.search-input cũ nữa */
 
-.search-input {
-  width: 100%;
-  height: 44px;
-  padding: 0 16px 0 48px;
-  font-size: 14px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background: #fafafa;
-  transition: all 0.3s ease;
-  font-family: inherit;
-}
-
-.search-input::placeholder {
-  color: #999;
-}
-
-.search-input:hover {
-  border-color: #d0d0d0;
-  background: #f5f5f5;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #1a4d8f;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(26, 77, 143, 0.1);
-}
-
-.table-container {
-  overflow-x: auto;
-}
-
-.citizens-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.citizens-table thead {
-  background: #fafafa;
-}
-
-.citizens-table th {
-  text-align: left;
-  padding: 16px 24px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a1a1a;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.citizens-table tbody tr {
-  border-bottom: 1px solid #f5f5f5;
-  transition: background 0.2s ease;
-}
-
-.citizens-table tbody tr:hover {
-  background: #fafafa;
-}
-
-.citizens-table td {
-  padding: 20px 24px;
-  font-size: 14px;
-  color: #333;
-}
-
-.name-cell {
-  font-weight: 500;
-  color: #1a1a1a;
-}
-
-.id-cell {
-  color: #666;
-  font-family: monospace;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  background: #e6f7ed;
-  color: #52c41a;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 12px;
-  letter-spacing: 0.5px;
-}
-
-.actions-cell {
-  display: flex;
-  gap: 8px;
-}
-
-.action-btn {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: transparent;
-}
-
-.view-btn {
-  color: #666;
-}
-
-.view-btn:hover {
-  background: #f0f0f0;
-  color: #1a1a1a;
-}
-
-.edit-btn {
-  color: #666;
-}
-
-.edit-btn:hover {
-  background: #e6f4ff;
-  color: #1890ff;
-}
-
-.delete-btn {
-  color: #666;
-}
-
-.delete-btn:hover {
-  background: #fff1f0;
-  color: #ff4d4f;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 24px;
-  border-top: 1px solid #f0f0f0;
-  gap: 16px;
-}
-
-.pagination-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.items-per-page {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.items-label {
-  font-size: 14px;
-  color: #666;
-}
-
-.items-select {
-  padding: 6px 32px 6px 12px;
-  border: 1px solid #d9d9d9;
-  border-radius: 6px;
-  font-size: 14px;
-  color: #333;
-  background: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-}
-
-.items-select:hover {
-  border-color: #1a4d8f;
-}
-
-.items-select:focus {
-  outline: none;
-  border-color: #1a4d8f;
-  box-shadow: 0 0 0 2px rgba(26, 77, 143, 0.1);
-}
-
-.pagination-info {
-  font-size: 14px;
-  color: #666;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.pagination-btn {
-  padding: 8px 16px;
-  border: 1px solid #d9d9d9;
-  background: white;
-  color: #333;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.pagination-btn:hover:not(:disabled) {
-  border-color: #1a4d8f;
-  color: #1a4d8f;
-}
-
-.pagination-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.pagination-numbers {
-  display: flex;
-  gap: 4px;
-}
-
-.pagination-number {
-  width: 36px;
-  height: 36px;
-  border: 1px solid #d9d9d9;
-  background: white;
-  color: #333;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pagination-number:hover {
-  border-color: #1a4d8f;
-  color: #1a4d8f;
-}
-
-.pagination-number.active {
-  background: #1a4d8f;
-  border-color: #1a4d8f;
-  color: white;
-}
-
+/* ===== Responsive ===== */
 @media (max-width: 768px) {
   .citizens-container {
     padding: 16px;
@@ -353,42 +187,24 @@
     gap: 16px;
   }
 
-  .add-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
   .page-title {
     font-size: 24px;
   }
 
-  .table-container {
-    overflow-x: scroll;
+  .content-card {
+    border-radius: 10px;
   }
 
-  .citizens-table {
-    min-width: 800px;
+  .ant-table {
+    .ant-table-container {
+      overflow-x: auto; // scroll ngang nếu hẹp
+    }
   }
 
-  .pagination-container {
-    flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
-  }
-
-  .pagination-left {
-    width: 100%;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .pagination-controls {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .pagination-info {
-    width: 100%;
+  .ant-pagination {
+    padding: 12px 16px;
+    .ant-pagination-options {
+      margin-top: 8px;
+    }
   }
 }
