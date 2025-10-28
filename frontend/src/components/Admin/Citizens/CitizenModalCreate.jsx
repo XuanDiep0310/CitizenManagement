@@ -13,6 +13,10 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
+import {
+  callListWardAPI,
+  createCitizenAPI,
+} from "../../../services/api.service";
 // Cập nhật API cho công dân (đổi tên theo service của bạn)
 
 const CitizenModalCreate = (props) => {
@@ -25,66 +29,58 @@ const CitizenModalCreate = (props) => {
   );
 
   useEffect(() => {
-    // const fetchWards = async () => {
-    // const res = await createCitizenAPI(
-    //   citizen_code,
-    //   full_name,
-    //   date_of_birth,
-    //   gender,
-    //   permanent_address,
-    //   ward_id,
-    //   phone,
-    //   email
-    // );
-    //   if (res && res.data) {
-    //     // Chuẩn hóa về {label, value}
-    //     const data = res.data.map((w) => ({
-    //       label: w.name,
-    //       value: w.id,
-    //     }));
-    //     setWards(data);
-    //   }
-    // };
-    // fetchWards();
+    const fetchWards = async () => {
+      const res = await callListWardAPI();
+      if (res && res.data) {
+        const data = res.data.map((w) => ({
+          label: w.ward_name,
+          value: w.ward_id,
+        }));
+        setWards(data);
+      }
+    };
+    fetchWards();
   }, []);
-
   const onFinish = async (values) => {
-    console.log(values);
-    // try {
-    //   const payload = {
-    //     citizen_code: values.citizen_code?.trim(),
-    //     full_name: values.full_name?.trim(),
-    //     // format YYYY-MM-DD
-    //     date_of_birth: values.date_of_birth
-    //       ? dayjs(values.date_of_birth).format("YYYY-MM-DD")
-    //       : null,
-    //     gender: values.gender,
-    //     permanent_address: values.permanent_address?.trim(),
-    //     ward_id: values.ward_id, // number
-    //     phone: values.phone?.trim(),
-    //     email: values.email?.trim(),
-    //   };
-    //   setIsSubmit(true);
-    //   const res = await createCitizenAPI(payload);
-    //   if (res && res.data) {
-    //     message.success("Tạo mới công dân thành công!");
-    //     form.resetFields();
-    //     setIsCreateOpen(false);
-    //     await fetchCitizen?.();
-    //   } else {
-    //     notification.error({
-    //       message: "Đã có lỗi xảy ra",
-    //       description: res?.message || "Không thể tạo công dân",
-    //     });
-    //   }
-    // } catch (e) {
-    //   notification.error({
-    //     message: "Đã có lỗi xảy ra",
-    //     description: e?.message || "Vui lòng thử lại",
-    //   });
-    // } finally {
-    //   setIsSubmit(false);
-    // }
+    const toDateISO = (d) => {
+      if (!d) return null;
+      const m = dayjs.isDayjs(d) ? d : dayjs(d, ["DD/MM/YYYY", "YYYY-MM-DD"]);
+      return m.isValid() ? m.format("YYYY-MM-DD") : null;
+    };
+    try {
+      const payload = {
+        citizen_code: values.citizen_code?.trim(),
+        full_name: values.full_name?.trim(),
+        date_of_birth: toDateISO(values.date_of_birth),
+        gender: values.gender,
+        permanent_address: values.permanent_address?.trim(),
+        ward_id: values.ward_id,
+        phone: values.phone?.trim(),
+        email: values.email?.trim(),
+      };
+      console.log(payload);
+      setIsSubmit(true);
+      const res = await createCitizenAPI(payload);
+      console.log(res);
+      if (res && res.data) {
+        message.success("Tạo mới công dân thành công!");
+        form.resetFields();
+        setIsCreateOpen(false);
+        await fetchCitizen?.();
+      } else {
+        notification.error({
+          message: "Đã có lỗi xảy ra",
+          description: JSON.stringify(res?.details) || "Không thể tạo công dân",
+        });
+      }
+    } catch (e) {
+      notification.error({
+        message: "Đã có lỗi xảy ra",
+        description: e?.message || "Vui lòng thử lại",
+      });
+    } finally {
+      setIsSubmit(false);
+    }
   };
 
   return (
@@ -156,8 +152,8 @@ const CitizenModalCreate = (props) => {
               >
                 <DatePicker
                   style={{ width: "100%" }}
-                  format="YYYY-MM-DD"
-                  placeholder="1990-01-01"
+                  format="DD/MM/YYYY"
+                  placeholder="01/01/1990"
                   disabledDate={(current) => current && current > dayjs()}
                 />
               </Form.Item>

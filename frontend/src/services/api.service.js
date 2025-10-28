@@ -29,29 +29,20 @@ const callListCitizensAPI = (query) => {
   const res = axios.get(URL_BACKEND);
   return res;
 };
-
-const createCitizenAPI = (
-  citizen_code,
-  full_name,
-  date_of_birth,
-  gender,
-  permanent_address,
-  ward_id,
-  phone,
-  email
-) => {
-  const URL_BACKEND = "/api/citizen";
-  const data = {
-    citizen_code,
-    full_name,
-    date_of_birth,
-    gender,
-    permanent_address,
-    ward_id,
-    phone,
-    email,
-  };
+const callListWardAPI = () => {
+  const URL_BACKEND = `api/wards`;
+  const res = axios.get(URL_BACKEND);
+  return res;
+};
+const createCitizenAPI = (data) => {
+  const URL_BACKEND = "/api/citizens";
   const res = axios.post(URL_BACKEND, data);
+  return res;
+};
+const updateCitizenAPI = (id, data) => {
+  const URL_BACKEND = `/api/citizens/${id}`;
+
+  const res = axios.put(URL_BACKEND, data);
   return res;
 };
 
@@ -276,4 +267,6 @@ export {
   createCitizenAPI,
   callListHouseholdAPI,
   deleteHouseholdAPI,
+  callListWardAPI,
+  updateCitizenAPI,
 };

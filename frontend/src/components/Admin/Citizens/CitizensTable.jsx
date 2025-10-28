@@ -6,7 +6,6 @@ import {
   Tag,
   Popconfirm,
   Space,
-  message,
   notification,
 } from "antd";
 import {
@@ -24,6 +23,7 @@ import {
 import "../../../assets/styles/citizensTable.scss";
 import CitizenModalDetail from "./CitizenModalDetail";
 import CitizenModalCreate from "./CitizenModalCreate";
+import CitizenModalUpdate from "./CitizenModalUpdate";
 
 const DEBOUNCE_MS = 400;
 
@@ -56,7 +56,8 @@ const CitizensTable = () => {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  // const [isModalImportOpen, setIsModalImportOpen] = useState(false);
+  const [isModalOpenUpdate, setIsModalOpenUpdate] = useState(false);
+  const [citizenUpdate, setCitizenUpdate] = useState(null);
   const fetchCitizen = async () => {
     setLoadingTable(true);
     let query = `page=${current}&pageSize=${pageSize}`;
@@ -120,8 +121,9 @@ const CitizensTable = () => {
     setCitizenDetail(record);
     setIsDetailCitizenOpen(true);
   };
-  const handleEdit = (id) => {
-    message.info(`Edit citizen: ${id}`);
+  const handleEdit = (record) => {
+    setCitizenUpdate(record);
+    setIsModalOpenUpdate(true);
   };
   const handleDelete = async (id) => {
     const res = await deleteCitizenAPI(id);
@@ -197,7 +199,7 @@ const CitizensTable = () => {
           <Button
             type="text"
             icon={<EditOutlined />}
-            onClick={() => handleEdit(r.id)}
+            onClick={() => handleEdit(r)}
           />
           <Popconfirm
             title="Delete citizen"
@@ -294,13 +296,13 @@ const CitizensTable = () => {
         setIsCreateOpen={setIsCreateOpen}
         fetchCitizen={fetchCitizen}
       />
-      {/* <CitizenModalUpdate
-              isModalOpenUpdate={isModalOpenUpdate}
-              setIsModalOpenUpdate={setIsModalOpenUpdate}
-              bookUpdate={bookUpdate}
-              setBookUpdate={setBookUpdate}
-              fetchBook={fetchBook}
-            /> */}
+      <CitizenModalUpdate
+        isModalOpenUpdate={isModalOpenUpdate}
+        setIsModalOpenUpdate={setIsModalOpenUpdate}
+        fetchCitizen={fetchCitizen}
+        setCitizenUpdate={setCitizenUpdate}
+        citizenUpdate={citizenUpdate}
+      />
     </>
   );
 };
