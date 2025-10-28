@@ -1,30 +1,57 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router";
-import ViewDetail from "./ViewDetail";
+import ViewDetailHousehold from "./ViewDetailHousehold";
+import {
+  callHouseholdAPI,
+  callHouseholdMembersdAPI,
+  deleteHouseholdAPI,
+} from "../../../services/api.service";
+import { notification } from "antd";
 
 const HouseholdDetail = () => {
-  const [dataBook, setDataBook] = useState();
+  const [dataHousehold, setHousehold] = useState();
+  const [dataHouseholdMembers, setHouseholdMembers] = useState();
   let location = useLocation();
   let params = new URLSearchParams(location.search);
   const id = params?.get(`id`);
 
-  const fetchBook = async (id) => {
-    // const res = await getBookAPI(id);
-    // if (res.data) {
-    //   let raw = res.data;
-    //   raw.items = getImages(raw);
-    //   setTimeout(() => {
-    //     setDataBook(raw);
-    //   }, 1000);
-    // }
+  const handleDelete = async () => {
+    const res = await deleteHouseholdAPI(id);
+    console.log(res);
+    if (res && res.success === true) {
+      notification.success({
+        message: "Delete Household",
+        description: "success!",
+      });
+      await fetchHousehold();
+    } else {
+      notification.error({
+        message: "error",
+        description: JSON.stringify(res.error.message),
+      });
+    }
+  };
+  const fetchHousehold = async (id) => {
+    const resHouse = await callHouseholdAPI(id);
+    const resMembers = await callHouseholdMembersdAPI(id);
+    if (resHouse && resHouse.data) {
+      setHousehold(resHouse.data);
+    }
+    if (resMembers && resMembers.data) {
+      setHouseholdMembers(resMembers.data);
+    }
   };
   useEffect(() => {
-    // fetchBook(id);
+    fetchHousehold(id);
   }, [id]);
 
   return (
     <>
-      <ViewDetail dataBook={dataBook} />
+      <ViewDetailHousehold
+        dataHousehold={dataHousehold}
+        dataHouseholdMembers={dataHouseholdMembers}
+        handleDelete={handleDelete}
+      />
     </>
   );
 };

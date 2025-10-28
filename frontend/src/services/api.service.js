@@ -58,6 +58,36 @@ const callListHouseholdAPI = (query) => {
   return res;
 };
 
+const callHouseholdAPI = (id) => {
+  const URL_BACKEND = `api/households/${id}`;
+  const res = axios.get(URL_BACKEND);
+  return res;
+};
+const callHouseholdMembersdAPI = (id) => {
+  const URL_BACKEND = `api/households/${id}/members`;
+  const res = axios.get(URL_BACKEND);
+  return res;
+};
+const createHouseholdAPI = (data) => {
+  const URL_BACKEND = "/api/households";
+  const res = axios.post(URL_BACKEND, data);
+  return res;
+};
+const addHouseholdMemberAPI = (householdId, data) => {
+  const URL_BACKEND = `api/households/${householdId}/members`;
+  const res = axios.post(URL_BACKEND, data);
+  return res;
+};
+const deleteHouseholdMemberAPI = (id, citizensId) => {
+  const URL_BACKEND = `api/households/${id}/members/${citizensId}`;
+  const res = axios.delete(URL_BACKEND);
+  return res;
+};
+const updateHouseholdAPI = (id, data) => {
+  const URL_BACKEND = `api/households/${id}`;
+  const res = axios.put(URL_BACKEND, data);
+  return res;
+};
 const deleteHouseholdAPI = (id) => {
   const URL_BACKEND = `api/households/${id}`;
   const res = axios.delete(URL_BACKEND);
@@ -269,4 +299,10 @@ export {
   deleteHouseholdAPI,
   callListWardAPI,
   updateCitizenAPI,
+  callHouseholdAPI,
+  callHouseholdMembersdAPI,
+  createHouseholdAPI,
+  addHouseholdMemberAPI,
+  deleteHouseholdMemberAPI,
+  updateHouseholdAPI,
 };
