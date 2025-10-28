@@ -11,7 +11,6 @@ Hệ thống quản lý công dân cho tỉnh/huyện/xã, xây dựng trên n�
 - [Cấu trúc thư mục](#cấu-trúc-thư-mục)
 - [API Documentation](#api-documentation)
 - [Bảo mật](#bảo-mật)
-- [Testing](#testing)
 
 ---
 
@@ -86,7 +85,7 @@ Hệ thống quản lý công dân cho tỉnh/huyện/xã, xây dựng trên n�
 ### Bước 1: Clone project
 ```bash
 git clone <repository-url>
-cd citizen-management-backend
+cd backend
 ```
 
 ### Bước 2: Cài đặt dependencies
@@ -236,39 +235,6 @@ Username: viewer01
 Password: Viewer@123
 ```
 
-### API Endpoints chính
-
-#### Authentication
-```
-POST   /api/auth/login              # Đăng nhập
-POST   /api/auth/refresh            # Làm mới token
-POST   /api/auth/logout             # Đăng xuất
-POST   /api/auth/change-password    # Đổi mật khẩu
-GET    /api/auth/me                 # Thông tin user hiện tại
-```
-
-#### Citizens
-```
-GET    /api/citizens                # Danh sách công dân
-GET    /api/citizens/:id            # Chi tiết công dân
-POST   /api/citizens                # Thêm công dân
-PUT    /api/citizens/:id            # Cập nhật công dân
-DELETE /api/citizens/:id            # Xóa công dân (soft delete)
-GET    /api/citizens/stats/gender   # Thống kê theo giới tính
-GET    /api/citizens/stats/age-group # Thống kê theo độ tuổi
-```
-
-#### Households (Đang phát triển)
-```
-GET    /api/households              # Danh sách hộ khẩu
-GET    /api/households/:id          # Chi tiết hộ khẩu
-POST   /api/households              # Tạo hộ khẩu
-PUT    /api/households/:id          # Cập nhật hộ khẩu
-DELETE /api/households/:id          # Xóa hộ khẩu
-GET    /api/households/:id/members  # Thành viên hộ khẩu
-POST   /api/households/:id/members  # Thêm thành viên
-```
-
 ---
 
 ## 🔐 BẢO MẬT
@@ -371,13 +337,6 @@ POST   /api/households/:id/members  # Thêm thành viên
 
 ---
 
-## 🧪 TESTING
-
-### Chạy tests (Đang phát triển)
-```bash
-npm test
-```
-
 ### Test với Postman
 1. Import Postman collection từ `postman/collection.json`
 2. Cấu hình environment variables
@@ -445,16 +404,6 @@ Error: secretOrPrivateKey must have a value
 - [ ] Backup database
 - [ ] Setup monitoring
 - [ ] Configure log rotation
-- [ ] Setup reverse proxy (nginx)
-
-### Docker Deployment (Optional)
-```bash
-# Build image
-docker build -t citizen-management-api .
-
-# Run container
-docker run -p 3000:3000 --env-file .env citizen-management-api
-```
 
 ---
 
@@ -463,19 +412,6 @@ docker run -p 3000:3000 --env-file .env citizen-management-api
 - **Email**: support@citizen.gov.vn
 - **Documentation**: http://localhost:3000/api-docs
 - **Issues**: [GitHub Issues]
-
----
-
-## 📄 LICENSE
-
-MIT License - Xem file LICENSE để biết thêm chi tiết
-
----
-
-## 👥 CONTRIBUTORS
-
-- Developer: [Your Name]
-- Project Manager: [PM Name]
 
 ---
 
