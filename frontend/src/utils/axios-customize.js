@@ -86,9 +86,8 @@ instance.interceptors.response.use(
     //   window.location.href = "/login";
     // }
 
-    // return error?.response.data ?? Promise.reject(error);
     // console.log(error);
-    return error;
+    return error?.response.data ?? Promise.reject(error);
   }
 );
 export default instance;

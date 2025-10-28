@@ -16,48 +16,28 @@ import {
   DeleteOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
-import dayjs from "dayjs";
 import {
-  callListCitizensAPI,
-  deleteCitizenAPI,
+  callListHouseholdAPI,
+  deleteHouseholdAPI,
 } from "../../../services/api.service";
-import "../../../assets/styles/citizensTable.scss";
-import CitizenModalDetail from "./CitizenModalDetail";
-import CitizenModalCreate from "./CitizenModalCreate";
+import "../../../assets/styles/householdTable.scss";
+import { useNavigate } from "react-router";
 
-const DEBOUNCE_MS = 400;
-
-const statusColor = (s) => {
-  switch (s) {
-    case "Active":
-      return "green";
-    case "Pending":
-      return "gold";
-    case "Inactive":
-      return "red";
-    default:
-      return "blue";
-  }
-};
-
-const CitizensTable = () => {
+const HouseholdTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [pageSize, setPageSize] = useState(5);
   const [current, setCurrent] = useState(1);
   const [total, setTotal] = useState(100);
-  const [citizensData, setCitizensData] = useState([]);
+  const [householdData, setHouseholdData] = useState([]);
   const [loadingTable, setLoadingTable] = useState(false);
 
   // const [sortQuery, setSortQuery] = useState("");
   // const [filter, setFilter] = useState("");
 
-  const [citizenDetail, setCitizenDetail] = useState();
-  const [isDetailCitizenOpen, setIsDetailCitizenOpen] = useState(false);
-
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   // const [isModalImportOpen, setIsModalImportOpen] = useState(false);
-  const fetchCitizen = async () => {
+  const fetchHousehold = async () => {
     setLoadingTable(true);
     let query = `page=${current}&pageSize=${pageSize}`;
     // if (filter) {
@@ -69,18 +49,18 @@ const CitizensTable = () => {
     if (searchTerm) {
       query += `&searchTerm=${searchTerm}`;
     }
-    const res = await callListCitizensAPI(query);
+    const res = await callListHouseholdAPI(query);
     if (res && res.data) {
       setCurrent(+res.pagination.page);
       setPageSize(+res.pagination.pageSize);
       setTotal(res.pagination.totalCount);
-      setCitizensData(res.data);
+      setHouseholdData(res.data);
     }
     setLoadingTable(false);
   };
 
   useEffect(() => {
-    fetchCitizen();
+    fetchHousehold();
   }, [current, pageSize, searchTerm]);
   // , sortQuery, filter
 
@@ -115,23 +95,18 @@ const CitizensTable = () => {
   //     XLSX.writeFile(workbook, "ExportUser.xlsx");
   //   }
   // };
-
-  const handleView = (record) => {
-    setCitizenDetail(record);
-    setIsDetailCitizenOpen(true);
-  };
   const handleEdit = (id) => {
-    message.info(`Edit citizen: ${id}`);
+    message.info(`Edit household: ${id}`);
   };
   const handleDelete = async (id) => {
-    const res = await deleteCitizenAPI(id);
+    const res = await deleteHouseholdAPI(id);
     console.log(res);
     if (res && res.success === true) {
       notification.success({
-        message: "Delete Citizen",
+        message: "Delete Household",
         description: "success!",
       });
-      await fetchCitizen();
+      await fetchHousehold();
     } else {
       notification.error({
         message: "error",
@@ -139,48 +114,96 @@ const CitizensTable = () => {
       });
     }
   };
+
+  const removeVietnameseTones = (str) => {
+    str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+    str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+    str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+    str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+    str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+    str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+    str = str.replace(/đ/g, "d");
+    str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+    str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+    str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+    str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+    str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+    str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+    str = str.replace(/Đ/g, "D");
+
+    str = str.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, ""); // ̀ ́ ̃ ̉ ̣  huyền, sắc, ngã, hỏi, nặng
+    str = str.replace(/\u02C6|\u0306|\u031B/g, ""); // ˆ ̆ ̛  Â, Ê, Ă, Ơ, Ư
+    str = str.replace(/ + /g, " ");
+    str = str.trim();
+    // Remove punctuations
+    // Bỏ dấu câu, kí tự đặc biệt
+    str = str.replace(
+      /!|@|%|\^|\*|\(|\)|\+|\=|\<|\>|\?|\/|,|\.|\:|\;|\'|\"|\&|\#|\[|\]|~|\$|_|`|-|{|}|\||\\/g,
+      " "
+    );
+
+    return str;
+  };
+  const convertSlug = (str) => {
+    str = removeVietnameseTones(str);
+    str = str.replace(/^\s+|\s+$/g, ""); // trim
+    str = str.toLowerCase();
+
+    // remove accents, swap ñ for n, etc
+    var from =
+      "ÁÄÂÀÃÅČÇĆĎÉĚËÈÊẼĔȆĞÍÌÎÏİŇÑÓÖÒÔÕØŘŔŠŞŤÚŮÜÙÛÝŸŽáäâàãåčçćďéěëèêẽĕȇğíìîïıňñóöòôõøðřŕšşťúůüùûýÿžþÞĐđßÆa·/_,:;";
+    var to =
+      "AAAAAACCCDEEEEEEEEGIIIIINNOOOOOORRSSTUUUUUYYZaaaaaacccdeeeeeeeegiiiiinnooooooorrsstuuuuuyyzbBDdBAa------";
+    for (var i = 0, l = from.length; i < l; i++) {
+      str = str.replace(new RegExp(from.charAt(i), "g"), to.charAt(i));
+    }
+
+    str = str
+      .replace(/[^a-z0-9 -]/g, "") // remove invalid chars
+      .replace(/\s+/g, "-") // collapse whitespace and replace by -
+      .replace(/-+/g, "-"); // collapse dashes
+
+    return str;
+  };
+  const navigate = useNavigate();
+  const handleRedirectHousehold = (householdDetail) => {
+    var str =
+      householdDetail.head_full_name +
+      householdDetail.household_id +
+      householdDetail.household_code;
+    const slug = convertSlug(str);
+    navigate(`/admin/household/${slug}?id=${householdDetail.household_id}`);
+  };
   const columns = [
     {
-      title: "Name",
-      dataIndex: "full_name",
-      key: "full_name",
+      title: "Household Number",
+      dataIndex: "household_code",
+      key: "household_code",
       // ellipsis: true,
       render: (t) => <span style={{ fontWeight: 500 }}>{t}</span>,
     },
     {
-      title: "ID Citizen",
-      dataIndex: "citizen_code",
-      key: "citizen_code",
-      render: (t) => <code style={{ color: "rgba(0,0,0,.65)" }}>{t}</code>,
-    },
-    {
-      title: "Date of Birth",
-      dataIndex: "date_of_birth",
-      key: "date_of_birth",
-      sorter: false,
-      render: (value) => (value ? dayjs(value).format("DD/MM/YYYY") : "—"),
-    },
-    {
-      title: "Location",
-      dataIndex: "permanent_address",
-      key: "lpermanent_address",
+      title: "Household Head",
+      dataIndex: "head_full_name",
+      key: "head_full_name",
       ellipsis: true,
     },
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
+      title: "Address",
+      dataIndex: "address",
+      key: "address",
+      width: 500,
+      ellipsis: true,
+    },
+    {
+      title: "Members",
+      dataIndex: "member_count",
+      key: "member_count",
       render: (s) => (
-        <Tag color={statusColor(s)} style={{ fontWeight: 600 }}>
-          {s}
+        <Tag color="blue" style={{ fontWeight: 600 }}>
+          {s} Members
         </Tag>
       ),
-      filters: [
-        { text: "Active", value: "Active" },
-        { text: "Pending", value: "Pending" },
-        { text: "Inactive", value: "Inactive" },
-      ],
-      onFilter: (value, record) => record.status === value,
     },
     {
       title: "Actions",
@@ -192,7 +215,7 @@ const CitizensTable = () => {
           <Button
             type="text"
             icon={<EyeOutlined />}
-            onClick={() => handleView(r)}
+            onClick={() => handleRedirectHousehold(r)}
           />
           <Button
             type="text"
@@ -203,7 +226,7 @@ const CitizensTable = () => {
             title="Delete citizen"
             description="Are you sure you want to delete this citizen?"
             okType="danger"
-            onConfirm={() => handleDelete(r.citizen_id)}
+            onConfirm={() => handleDelete(r.household_id)}
           >
             <Button type="text" danger icon={<DeleteOutlined />} />
           </Popconfirm>
@@ -214,12 +237,12 @@ const CitizensTable = () => {
 
   return (
     <>
-      <div className="citizens-container">
+      <div className="household-container">
         <div className="page-header">
           <div className="header-content">
-            <h1 className="page-title">Citizens</h1>
+            <h1 className="page-title">Households</h1>
             <p className="page-subtitle">
-              Manage citizen records and information
+              Manage household records and members
             </p>
           </div>
           <Button
@@ -227,16 +250,16 @@ const CitizensTable = () => {
             icon={<PlusOutlined />}
             onClick={() => setIsCreateOpen(true)}
           >
-            Add Citizen
+            New Household
           </Button>
         </div>
 
         <div className="content-card">
           <div className="card-header">
             <div className="card-header-text">
-              <h2 className="card-title">Citizen Records</h2>
+              <h2 className="card-title">Household Records</h2>
               <p className="card-subtitle">
-                View and manage all citizen information
+                View and manage all household information
               </p>
             </div>
           </div>
@@ -251,7 +274,7 @@ const CitizensTable = () => {
           >
             <Input
               allowClear
-              placeholder="Search by name or ID number..."
+              placeholder="Search by household or ID number or Address"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -264,7 +287,7 @@ const CitizensTable = () => {
           <Table
             rowKey="id"
             columns={columns}
-            dataSource={citizensData}
+            dataSource={householdData}
             loading={loadingTable}
             onChange={handleOnChangePagi}
             pagination={{
@@ -283,25 +306,13 @@ const CitizensTable = () => {
           />
         </div>
       </div>
-      <CitizenModalDetail
-        citizenDetail={citizenDetail}
-        setCitizenDetail={setCitizenDetail}
-        isDetailCitizenOpen={isDetailCitizenOpen}
-        setIsDetailCitizenOpen={setIsDetailCitizenOpen}
-      />
-      <CitizenModalCreate
+
+      {/* <HouseholdModalCreate
         isCreateOpen={isCreateOpen}
         setIsCreateOpen={setIsCreateOpen}
-        fetchCitizen={fetchCitizen}
-      />
-      {/* <CitizenModalUpdate
-              isModalOpenUpdate={isModalOpenUpdate}
-              setIsModalOpenUpdate={setIsModalOpenUpdate}
-              bookUpdate={bookUpdate}
-              setBookUpdate={setBookUpdate}
-              fetchBook={fetchBook}
-            /> */}
+        fetchHousehold={fetchHousehold}
+      /> */}
     </>
   );
 };
-export default CitizensTable;
+export default HouseholdTable;

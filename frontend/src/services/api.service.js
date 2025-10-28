@@ -24,6 +24,55 @@ const callLogout = () => {
   return axios.post(URL_BACKEND);
 };
 
+const callListCitizensAPI = (query) => {
+  const URL_BACKEND = `api/citizens?${query}`;
+  const res = axios.get(URL_BACKEND);
+  return res;
+};
+
+const createCitizenAPI = (
+  citizen_code,
+  full_name,
+  date_of_birth,
+  gender,
+  permanent_address,
+  ward_id,
+  phone,
+  email
+) => {
+  const URL_BACKEND = "/api/citizen";
+  const data = {
+    citizen_code,
+    full_name,
+    date_of_birth,
+    gender,
+    permanent_address,
+    ward_id,
+    phone,
+    email,
+  };
+  const res = axios.post(URL_BACKEND, data);
+  return res;
+};
+
+const deleteCitizenAPI = (id) => {
+  const URL_BACKEND = `api/citizens/${id}`;
+  const res = axios.delete(URL_BACKEND);
+  return res;
+};
+
+const callListHouseholdAPI = (query) => {
+  const URL_BACKEND = `api/households?${query}`;
+  const res = axios.get(URL_BACKEND);
+  return res;
+};
+
+const deleteHouseholdAPI = (id) => {
+  const URL_BACKEND = `api/households/${id}`;
+  const res = axios.delete(URL_BACKEND);
+  return res;
+};
+
 const callListUserAPI = (query) => {
   const URL_BACKEND = `/api/v1/user?${query}`;
   const res = axios.get(URL_BACKEND);
@@ -222,4 +271,9 @@ export {
   callOrderApi,
   callFetchDashBoard,
   callUserById,
+  callListCitizensAPI,
+  deleteCitizenAPI,
+  createCitizenAPI,
+  callListHouseholdAPI,
+  deleteHouseholdAPI,
 };
