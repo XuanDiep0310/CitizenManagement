@@ -102,13 +102,22 @@ const callListTemporaryResidencesAPI = (query) => {
   const res = axios.get(URL_BACKEND);
   return res;
 };
+const createTemporaryResidencesAPI = (data) => {
+  const URL_BACKEND = `api/temporary-residences`;
+  const res = axios.post(URL_BACKEND, data);
+  return res;
+};
 
 const callListTemporaryAbsencesAPI = (query) => {
   const URL_BACKEND = `api/temporary-absences?${query}`;
   const res = axios.get(URL_BACKEND);
   return res;
 };
-
+const createTemporaryAbsencesAPI = (data) => {
+  const URL_BACKEND = `api/temporary-absences`;
+  const res = axios.post(URL_BACKEND, data);
+  return res;
+};
 const callListUserAPI = (query) => {
   const URL_BACKEND = `/api/v1/user?${query}`;
   const res = axios.get(URL_BACKEND);
@@ -323,4 +332,6 @@ export {
   callChangePassword,
   callListTemporaryResidencesAPI,
   callListTemporaryAbsencesAPI,
+  createTemporaryResidencesAPI,
+  createTemporaryAbsencesAPI,
 };

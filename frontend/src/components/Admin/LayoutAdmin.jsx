@@ -1,10 +1,13 @@
-import { Col, Dropdown, Layout, Menu, Row } from "antd";
+import { Col, Dropdown, Layout, Menu, message, Row } from "antd";
 const { Content, Footer, Sider } = Layout;
 import { useEffect, useState } from "react";
 // import { useDispatch, useSelector } from "react-redux";
-import { Link, Outlet, useLocation } from "react-router";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { HomeOutlined, UserOutlined, LogoutOutlined } from "@ant-design/icons";
 import { FaBars } from "react-icons/fa";
+import { callLogout } from "../../services/api.service";
+import { doLogoutAction } from "../../redux/account/accountSlice";
+import { useDispatch } from "react-redux";
 
 // import { callLogout } from "../../services/api.service";
 // import { doLogoutAction } from "../../redux/account/accountSlice";
@@ -12,16 +15,18 @@ const LayoutAdmin = () => {
   const [current, setCurrent] = useState("");
   //   const [isModalOpenUser, setIsModalOpenUser] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  //   const navigate = useNavigate();
-  //   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const handleLogout = async () => {
-    // const res = await callLogout();
-    // if (res && res?.data) {
-    //   dispatch(doLogoutAction());
-    //   message.success("Đăng xuất thành công");
-    //   navigate("/");
-    // }
-    console.log("logout");
+    const res = await callLogout();
+
+    if (res) {
+      dispatch(doLogoutAction());
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      message.success("Đăng xuất thành công");
+      navigate("/");
+    }
   };
   const itemsMenu = [
     {
@@ -50,7 +55,11 @@ const LayoutAdmin = () => {
       icon: <HomeOutlined />,
     },
     {
-      label: <Link to="/admin/reports">Reports</Link>,
+      label: (
+        <label style={{ cursor: "pointer" }} onClick={handleLogout}>
+          Logout
+        </label>
+      ),
       key: "reports",
       icon: <HomeOutlined />,
     },
@@ -97,13 +106,7 @@ const LayoutAdmin = () => {
 
   useEffect(() => {
     if (location && location.pathname) {
-      const allRoutes = [
-        "citizen",
-        "household",
-        "residence",
-        "certificates",
-        "reports",
-      ];
+      const allRoutes = ["citizen", "household", "residence", "certificates"];
       const currentRoute = allRoutes.find((item) =>
         location.pathname.startsWith(`/admin/${item}`)
       );

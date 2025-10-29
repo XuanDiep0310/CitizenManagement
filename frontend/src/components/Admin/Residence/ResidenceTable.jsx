@@ -1,15 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import {
-  Button,
-  Card,
-  Table,
-  Tabs,
-  Tag,
-  Typography,
-  Space,
-  message,
-} from "antd";
-import { ReloadOutlined } from "@ant-design/icons";
+import { Button, Card, Table, Tabs, Tag, Typography, message } from "antd";
+import { ReloadOutlined, PlusOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import "../../../assets/styles/residenceTable.scss";
@@ -17,6 +8,10 @@ import {
   callListTemporaryResidencesAPI,
   callListTemporaryAbsencesAPI,
 } from "../../../services/api.service";
+
+// === NEW: import 2 modal tạo mới ===
+import ResidenceCreateModal from "./ResidenceCreateModal";
+import AbsenceCreateModal from "./AbsenceCreateModal";
 
 dayjs.locale("vi");
 const { Title, Text } = Typography;
@@ -43,6 +38,10 @@ const ResidenceTable = () => {
   // data per tab
   const [residenceRows, setResidenceRows] = useState([]);
   const [absenceRows, setAbsenceRows] = useState([]);
+
+  // === NEW: state mở/đóng modal ===
+  const [openCreateResidence, setOpenCreateResidence] = useState(false);
+  const [openCreateAbsence, setOpenCreateAbsence] = useState(false);
 
   // ===== API fetchers with query =====
   const fetchResidence = useCallback(async () => {
@@ -92,7 +91,6 @@ const ResidenceTable = () => {
         sortBy,
         sortDir,
       });
-      console.log(res);
       const list = Array.isArray(res?.data) ? res.data : [];
       const rows = list.map((x) => ({
         key: x.temp_absence_id,
@@ -151,11 +149,7 @@ const ResidenceTable = () => {
       }
     }
   };
-
-  const onRefresh = () => {
-    if (activeTab === "residence") fetchResidence();
-    else fetchAbsence();
-  };
+  // console.log(residenceRows);
 
   // ===== Columns =====
   const residenceCols = useMemo(
@@ -207,7 +201,6 @@ const ResidenceTable = () => {
         key: "days_remaining",
         align: "center",
         width: 130,
-
         render: (v) => (
           <Tag color={v > 0 ? "processing" : "default"}>{v ?? "—"}</Tag>
         ),
@@ -217,7 +210,6 @@ const ResidenceTable = () => {
         dataIndex: "status",
         key: "status",
         width: 120,
-
         render: (s) => <Tag color={STATUS_COLORS[s] || "default"}>{s}</Tag>,
       },
       {
@@ -288,7 +280,6 @@ const ResidenceTable = () => {
         key: "days_until_return",
         align: "center",
         width: 130,
-
         render: (v) => (
           <Tag color={v > 0 ? "processing" : "default"}>{v ?? "—"}</Tag>
         ),
@@ -298,7 +289,6 @@ const ResidenceTable = () => {
         dataIndex: "status",
         key: "status",
         width: 120,
-
         render: (s) => <Tag color={STATUS_COLORS[s] || "default"}>{s}</Tag>,
       },
     ],
@@ -317,11 +307,7 @@ const ResidenceTable = () => {
             Manage temporary residence and absence records
           </Text>
         </div>
-        <Space>
-          <Button icon={<ReloadOutlined />} onClick={onRefresh}>
-            Refresh
-          </Button>
-        </Space>
+        {/* BỎ nút create khỏi header chung để mỗi tab có nút riêng */}
       </div>
 
       <Card className="residence-records">
@@ -336,8 +322,7 @@ const ResidenceTable = () => {
           activeKey={activeTab}
           onChange={(key) => {
             setActiveTab(key);
-            // reset trang khi đổi tab (tùy bạn)
-            setCurrent(1);
+            setCurrent(1); // reset trang khi đổi tab
           }}
           destroyInactiveTabPane
           items={[
@@ -345,69 +330,125 @@ const ResidenceTable = () => {
               key: "residence",
               label: "Temporary Residence",
               children: (
-                <Table
-                  rowKey="key"
-                  loading={loadingTable}
-                  onChange={handleOnChangePagi}
-                  columns={residenceCols}
-                  dataSource={residenceRows}
-                  pagination={{
-                    current,
-                    pageSize,
-                    total,
-                    showSizeChanger: true,
-                    pageSizeOptions: [5, 10, 20, 50],
-                    showTotal: (t, range) =>
-                      `${range[0]}-${range[1]} trên ${t} rows`,
-                  }}
-                  scroll={{ x: 900 }}
-                  size="middle"
-                  sticky
-                  locale={{
-                    emptyText: (
-                      <span className="residence-no-records">
-                        Không có dữ liệu
-                      </span>
-                    ),
-                  }}
-                />
+                <>
+                  {/* Actions riêng tab Tạm trú */}
+                  <div
+                    className="tab-actions"
+                    style={{ marginBottom: 12, display: "flex", gap: 8 }}
+                  >
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={() => setOpenCreateResidence(true)}
+                    >
+                      Thêm tạm trú
+                    </Button>
+                    <Button icon={<ReloadOutlined />} onClick={fetchResidence}>
+                      Refresh
+                    </Button>
+                  </div>
+
+                  <Table
+                    rowKey="key"
+                    loading={loadingTable}
+                    onChange={handleOnChangePagi}
+                    columns={residenceCols}
+                    dataSource={residenceRows}
+                    pagination={{
+                      current,
+                      pageSize,
+                      total,
+                      showSizeChanger: true,
+                      pageSizeOptions: [5, 10, 20, 50],
+                      showTotal: (t, range) =>
+                        `${range[0]}-${range[1]} trên ${t} rows`,
+                    }}
+                    scroll={{ x: 900 }}
+                    size="middle"
+                    sticky
+                    locale={{
+                      emptyText: (
+                        <span className="residence-no-records">
+                          Không có dữ liệu
+                        </span>
+                      ),
+                    }}
+                  />
+                </>
               ),
             },
             {
               key: "absence",
               label: "Temporary Absence",
               children: (
-                <Table
-                  rowKey="key"
-                  loading={loadingTable}
-                  onChange={handleOnChangePagi}
-                  columns={absenceCols}
-                  dataSource={absenceRows}
-                  pagination={{
-                    current,
-                    pageSize,
-                    total,
-                    showSizeChanger: true,
-                    pageSizeOptions: [5, 10, 20, 50],
-                    showTotal: (t, range) =>
-                      `${range[0]}-${range[1]} trên ${t} rows`,
-                  }}
-                  scroll={{ x: 900 }}
-                  size="middle"
-                  sticky
-                  locale={{
-                    emptyText: (
-                      <span className="residence-no-records">
-                        Không có dữ liệu
-                      </span>
-                    ),
-                  }}
-                />
+                <>
+                  {/* Actions riêng tab Tạm vắng */}
+                  <div
+                    className="tab-actions"
+                    style={{ marginBottom: 12, display: "flex", gap: 8 }}
+                  >
+                    <Button
+                      type="primary"
+                      ghost
+                      icon={<PlusOutlined />}
+                      onClick={() => setOpenCreateAbsence(true)}
+                    >
+                      Thêm tạm vắng
+                    </Button>
+                    <Button icon={<ReloadOutlined />} onClick={fetchAbsence}>
+                      Refresh
+                    </Button>
+                  </div>
+
+                  <Table
+                    rowKey="key"
+                    loading={loadingTable}
+                    onChange={handleOnChangePagi}
+                    columns={absenceCols}
+                    dataSource={absenceRows}
+                    pagination={{
+                      current,
+                      pageSize,
+                      total,
+                      showSizeChanger: true,
+                      pageSizeOptions: [5, 10, 20, 50],
+                      showTotal: (t, range) =>
+                        `${range[0]}-${range[1]} trên ${t} rows`,
+                    }}
+                    scroll={{ x: 900 }}
+                    size="middle"
+                    sticky
+                    locale={{
+                      emptyText: (
+                        <span className="residence-no-records">
+                          Không có dữ liệu
+                        </span>
+                      ),
+                    }}
+                  />
+                </>
               ),
             },
           ]}
         />
       </Card>
+
+      {/* === 2 Modal create === */}
+      <ResidenceCreateModal
+        open={openCreateResidence}
+        onClose={() => setOpenCreateResidence(false)}
+        onCreated={() => {
+          if (activeTab === "residence") fetchResidence();
+        }}
+      />
+
+      <AbsenceCreateModal
+        open={openCreateAbsence}
+        onClose={() => setOpenCreateAbsence(false)}
+        onCreated={() => {
+          if (activeTab === "absence") fetchAbsence();
+        }}
+      />
     </div>
   );
 };
