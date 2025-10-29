@@ -18,7 +18,10 @@ const callUserById = (id) => {
   const URL_BACKEND = `/api/users/${id}`;
   return axios.get(URL_BACKEND);
 };
-
+const callChangePassword = (data) => {
+  const URL_BACKEND = `/api/auth/change-password`;
+  return axios.post(URL_BACKEND, data);
+};
 const callLogout = () => {
   const URL_BACKEND = "/api/auth/logout";
   return axios.post(URL_BACKEND);
@@ -91,6 +94,18 @@ const updateHouseholdAPI = (id, data) => {
 const deleteHouseholdAPI = (id) => {
   const URL_BACKEND = `api/households/${id}`;
   const res = axios.delete(URL_BACKEND);
+  return res;
+};
+
+const callListTemporaryResidencesAPI = (query) => {
+  const URL_BACKEND = `api/temporary-residences?${query}`;
+  const res = axios.get(URL_BACKEND);
+  return res;
+};
+
+const callListTemporaryAbsencesAPI = (query) => {
+  const URL_BACKEND = `api/temporary-absences?${query}`;
+  const res = axios.get(URL_BACKEND);
   return res;
 };
 
@@ -305,4 +320,7 @@ export {
   addHouseholdMemberAPI,
   deleteHouseholdMemberAPI,
   updateHouseholdAPI,
+  callChangePassword,
+  callListTemporaryResidencesAPI,
+  callListTemporaryAbsencesAPI,
 };

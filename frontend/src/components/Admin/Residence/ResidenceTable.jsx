@@ -1,251 +1,244 @@
-// import { useEffect, useState } from "react";
-// import {
-//   Table,
-//   Input,
-//   Button,
-//   Tag,
-//   Popconfirm,
-//   Space,
-//   message,
-//   notification,
-// } from "antd";
-// import {
-//   PlusOutlined,
-//   EyeOutlined,
-//   EditOutlined,
-//   DeleteOutlined,
-//   SearchOutlined,
-// } from "@ant-design/icons";
-// import dayjs from "dayjs";
-// import {} from "../../../services/api.service";
-// import "../../../assets/styles/householdTable.scss";
-// import HouseholdModalDetail from "./HouseholdModalDetail";
-// // import HouseholdModalDetail from "./HouseholdModalDetail";
-// // import HouseholdModalCreate from "./HouseholdModalCreate";
+import { useMemo, useState } from "react";
+import {
+  Button,
+  Card,
+  DatePicker,
+  Form,
+  Input,
+  Modal,
+  Popconfirm,
+  Select,
+  Table,
+  Tabs,
+  Tag,
+  message,
+  Typography,
+} from "antd";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+import "dayjs/locale/vi";
+import viVN from "antd/locale/vi_VN";
+import "../../../assets/styles/residenceTable.scss";
 
-// const ResidenceTable = () => {
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [pageSize, setPageSize] = useState(5);
-//   const [current, setCurrent] = useState(1);
-//   const [total, setTotal] = useState(100);
-//   const [residence, setResidence] = useState([]);
-//   const [loadingTable, setLoadingTable] = useState(false);
+const { Title, Text } = Typography;
+const { RangePicker } = DatePicker;
 
-//   // const [sortQuery, setSortQuery] = useState("");
-//   // const [filter, setFilter] = useState("");
+const STATUS_COLORS = {
+  active: "green",
+  pending: "gold",
+  completed: "default",
+};
 
-//   // const [isModalImportOpen, setIsModalImportOpen] = useState(false);
-//   const fetchResidence = async () => {
-//     setLoadingTable(true);
-//     let query = `page=${current}&pageSize=${pageSize}`;
-//     // if (filter) {
-//     //   query += `${filter}`;
-//     // }
-//     // if (sortQuery) {
-//     //   query += `&${sortQuery}`;
-//     // }
-//     if (searchTerm) {
-//       query += `&searchTerm=${searchTerm}`;
-//     }
-//     const res = await callListResidenceAPI(query);
-//     if (res && res.data) {
-//       setCurrent(+res.pagination.page);
-//       setPageSize(+res.pagination.pageSize);
-//       setTotal(res.pagination.totalCount);
-//       setResidence(res.data);
-//     }
-//     setLoadingTable(false);
-//   };
+const ResidenceTable = () => {
+  const [activeTab, setActiveTab] = useState("residence"); // residence | absence
+  const [records, setRecords] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [form] = Form.useForm();
 
-//   useEffect(() => {
-//     fetchResidence();
-//   }, [current, pageSize, searchTerm]);
-//   // , sortQuery, filter
+  const filtered = useMemo(
+    () => records.filter((r) => r.type === activeTab),
+    [records, activeTab]
+  );
 
-//   const handleOnChangePagi = (pagination, filters, sorter) => {
-//     if (
-//       pagination &&
-//       pagination.pageSize &&
-//       +pagination.pageSize !== +pageSize
-//     ) {
-//       setPageSize(+pagination.pageSize);
-//       setCurrent(1);
-//     }
+  const columns = [
+    { title: "Citizen", dataIndex: "citizen", key: "citizen" },
+    { title: "Location", dataIndex: "location", key: "location" },
+    { title: "Reason", dataIndex: "reason", key: "reason" },
+    {
+      title: "Start Date",
+      dataIndex: "startDate",
+      key: "startDate",
+      render: (v) => (v ? dayjs(v).format("DD/MM/YYYY") : "—"),
+      width: 130,
+    },
+    {
+      title: "End Date",
+      dataIndex: "endDate",
+      key: "endDate",
+      render: (v) => (v ? dayjs(v).format("DD/MM/YYYY") : "—"),
+      width: 130,
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      width: 130,
+      render: (s) => <Tag color={STATUS_COLORS[s] || "default"}>{s}</Tag>,
+      filters: [
+        { text: "Active", value: "active" },
+        { text: "Pending", value: "pending" },
+        { text: "Completed", value: "completed" },
+      ],
+      onFilter: (val, record) => record.status === val,
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      width: 120,
+      render: (_, record) => (
+        <Popconfirm
+          title="Delete this record?"
+          okText="Delete"
+          cancelText="Cancel"
+          placement="left"
+          onConfirm={() => handleDelete(record.id)}
+        >
+          <Button danger icon={<DeleteOutlined />}>
+            Delete
+          </Button>
+        </Popconfirm>
+      ),
+    },
+  ];
 
-//     if (pagination && pagination.current && +pagination.current !== +current) {
-//       setCurrent(+pagination.current);
-//       console.log(pagination.current);
-//     }
-//     if (sorter && sorter.order) {
-//       // const q =
-//       //   sorter.order === "ascend"
-//       //     ? `sort=${sorter.field}`
-//       //     : `sort=-${sorter.field}`;
-//       // if (q) setSortQuery(q);
-//     }
-//   };
+  const handleDelete = (id) => {
+    setRecords((prev) => prev.filter((r) => r.id !== id));
+    message.success("Deleted.");
+  };
 
-//   // const handleExport = () => {
-//   //   if (userData.length > 0) {
-//   //     const worksheet = XLSX.utils.json_to_sheet(userData);
-//   //     const workbook = XLSX.utils.book_new();
-//   //     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-//   //     XLSX.writeFile(workbook, "ExportUser.xlsx");
-//   //   }
-//   // };
-//   const handleView = (record) => {};
-//   const handleEdit = (id) => {
-//     message.info(`Edit household: ${id}`);
-//   };
-//   const handleDelete = async (id) => {
-//     const res = await deleteResidenceAPI(id);
-//     console.log(res);
-//     if (res && res.success === true) {
-//       notification.success({
-//         message: "Delete Household",
-//         description: "success!",
-//       });
-//       await fetchResidence();
-//     } else {
-//       notification.error({
-//         message: "error",
-//         description: JSON.stringify(res.error.message),
-//       });
-//     }
-//   };
-//   const columns = [
-//     {
-//       title: "Household Number",
-//       dataIndex: "household_code",
-//       key: "household_code",
-//       // ellipsis: true,
-//       render: (t) => <span style={{ fontWeight: 500 }}>{t}</span>,
-//     },
-//     {
-//       title: "Household Head",
-//       dataIndex: "head_full_name",
-//       key: "head_full_name",
-//       ellipsis: true,
-//     },
-//     {
-//       title: "Address",
-//       dataIndex: "address",
-//       key: "address",
-//       width: 500,
-//       ellipsis: true,
-//     },
-//     {
-//       title: "Members",
-//       dataIndex: "member_count",
-//       key: "member_count",
-//       render: (s) => (
-//         <Tag color="blue" style={{ fontWeight: 600 }}>
-//           {s} Members
-//         </Tag>
-//       ),
-//     },
-//     {
-//       title: "Actions",
-//       key: "actions",
-//       fixed: "right",
-//       width: 160,
-//       render: (_, r) => (
-//         <Space>
-//           <Button
-//             type="text"
-//             icon={<EyeOutlined />}
-//             onClick={() => handleView(r)}
-//           />
-//           <Button
-//             type="text"
-//             icon={<EditOutlined />}
-//             onClick={() => handleEdit(r.id)}
-//           />
-//           <Popconfirm
-//             title="Delete citizen"
-//             description="Are you sure you want to delete this citizen?"
-//             okType="danger"
-//             onConfirm={() => handleDelete(r.household_id)}
-//           >
-//             <Button type="text" danger icon={<DeleteOutlined />} />
-//           </Popconfirm>
-//         </Space>
-//       ),
-//     },
-//   ];
+  const handleCreate = async () => {
+    try {
+      const values = await form.validateFields();
+      const [start, end] = values.dateRange || [];
+      const newRecord = {
+        id: Date.now(),
+        type: activeTab,
+        citizen: values.citizen.trim(),
+        location: values.location.trim(),
+        reason: values.reason.trim(),
+        startDate: start?.toISOString() ?? null,
+        endDate: end?.toISOString() ?? null,
+        status: values.status,
+      };
+      setRecords((prev) => [newRecord, ...prev]);
+      setOpen(false);
+      form.resetFields();
+      message.success("Record created.");
+    } catch {
+      // validation errors are shown by Form
+    }
+  };
 
-//   return (
-//     <>
-//       <div className="household-container">
-//         <div className="page-header">
-//           <div className="header-content">
-//             <h1 className="page-title">Households</h1>
-//             <p className="page-subtitle">
-//               Manage household records and members
-//             </p>
-//           </div>
-//           <Button
-//             type="primary"
-//             icon={<PlusOutlined />}
-//             // onClick={() => setIsCreateOpen(true)}
-//           >
-//             New Household
-//           </Button>
-//         </div>
+  return (
+    <div className="residence-tracker" locale={viVN}>
+      <div className="residence-header">
+        <div>
+          <Title level={2} style={{ margin: 0 }}>
+            Temporary Residence & Absence
+          </Title>
+          <Text className="residence-subtitle">
+            Manage temporary residence and absence records
+          </Text>
+        </div>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          className="residence-btn-new"
+          onClick={() => setOpen(true)}
+        >
+          New Record
+        </Button>
+      </div>
 
-//         <div className="content-card">
-//           <div className="card-header">
-//             <div className="card-header-text">
-//               <h2 className="card-title">Household Records</h2>
-//               <p className="card-subtitle">
-//                 View and manage all household information
-//               </p>
-//             </div>
-//           </div>
+      <Card className="residence-records">
+        <div className="residence-section-header">
+          <div className="residence-section-title">Records</div>
+          <div className="residence-section-subtitle">
+            Temporary residence and absence records
+          </div>
+        </div>
 
-//           <div
-//             style={{
-//               marginBottom: 16,
-//               display: "flex",
-//               gap: 20,
-//               width: "100%",
-//             }}
-//           >
-//             <Input
-//               allowClear
-//               placeholder="Search by household or ID number or Address"
-//               value={searchTerm}
-//               onChange={(e) => {
-//                 setSearchTerm(e.target.value);
-//               }}
-//               prefix={<SearchOutlined />}
-//               // style={{ flex: 1, minWidth: 0 }}
-//             />
-//           </div>
+        <Tabs
+          className="residence-tabs"
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={[
+            { key: "residence", label: "Temporary Residence" },
+            { key: "absence", label: "Temporary Absence" },
+          ]}
+        />
 
-//           <Table
-//             rowKey="id"
-//             columns={columns}
-//             dataSource={residence}
-//             loading={loadingTable}
-//             onChange={handleOnChangePagi}
-//             pagination={{
-//               current,
-//               pageSize,
-//               total,
-//               showSizeChanger: true,
-//               pageSizeOptions: [5, 10, 20, 50],
+        <div className="residence-table-container">
+          <Table
+            rowKey="id"
+            columns={columns}
+            dataSource={filtered}
+            pagination={{ pageSize: 8, showSizeChanger: true }}
+            locale={{
+              emptyText: (
+                <span className="residence-no-records">No records found</span>
+              ),
+            }}
+          />
+        </div>
+      </Card>
 
-//               showTotal: (total, range) =>
-//                 `${range[0]}-${range[1]} trên ${total} rows`,
-//             }}
-//             scroll={{ x: 900 }}
-//             size="middle"
-//             sticky
-//           />
-//         </div>
-//       </div>
-//     </>
-//   );
-// };
-// export default ResidenceTable;
+      <Modal
+        title={
+          <span className="residence-modal-title">
+            New {activeTab === "residence" ? "Residence" : "Absence"} Record
+          </span>
+        }
+        open={open}
+        onCancel={() => setOpen(false)}
+        onOk={handleCreate}
+        okText="Create"
+        cancelText="Cancel"
+        destroyOnClose
+      >
+        <Form form={form} layout="vertical" preserve={false}>
+          <Form.Item
+            label="Citizen Name"
+            name="citizen"
+            rules={[{ required: true, message: "Please enter citizen name" }]}
+          >
+            <Input placeholder="Enter citizen name" />
+          </Form.Item>
+
+          <Form.Item
+            label="Location"
+            name="location"
+            rules={[{ required: true, message: "Please enter location" }]}
+          >
+            <Input placeholder="Enter location" />
+          </Form.Item>
+
+          <Form.Item
+            label="Reason"
+            name="reason"
+            rules={[{ required: true, message: "Please enter reason" }]}
+          >
+            <Input placeholder="Enter reason" />
+          </Form.Item>
+
+          <Form.Item
+            label="Duration"
+            name="dateRange"
+            rules={[
+              { required: true, message: "Please pick start & end date" },
+            ]}
+          >
+            <RangePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+          </Form.Item>
+
+          <Form.Item
+            label="Status"
+            name="status"
+            initialValue="active"
+            rules={[{ required: true, message: "Please select status" }]}
+          >
+            <Select
+              options={[
+                { value: "active", label: "Active" },
+                { value: "pending", label: "Pending" },
+                { value: "completed", label: "Completed" },
+              ]}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+  );
+};
+
+export default ResidenceTable;

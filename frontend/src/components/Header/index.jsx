@@ -31,7 +31,7 @@ const Header = () => {
   const items = [
     {
       key: "HomePage",
-      label: <Link to="/">Home Page</Link>,
+      label: <Link to="/profile">Home Page</Link>,
     },
     // {
     //   key: "manageUser",
@@ -73,19 +73,27 @@ const Header = () => {
         </div>
         <div className="header-actions">
           {isAuthenticated === true ? (
-            <div style={{ cursor: "pointer" }}>
-              <Dropdown menu={{ items }}>
-                <a onClick={(e) => e.preventDefault()}>{fullName}</a>
-              </Dropdown>
-            </div>
+            <></>
           ) : (
             <button className="login-btn" onClick={handleLogin}>
               <LogIn size={18} />
               Login
             </button>
           )}
-
-          <button className="access-btn">Access System</button>
+          {isAuthenticated === true ? (
+            <div style={{ cursor: "pointer" }}>
+              <Dropdown menu={{ items }}>
+                <button
+                  className="access-btn"
+                  onClick={(e) => e.preventDefault()}
+                >
+                  Access System
+                </button>
+              </Dropdown>
+            </div>
+          ) : (
+            <button className="access-btn">Access System</button>
+          )}
         </div>
       </div>
     </header>

@@ -17,6 +17,8 @@ import { doGetAccountAction } from "./redux/account/accountSlice";
 import HouseholdTable from "./components/Admin/Household/HouseholdTable";
 import HouseholdDetail from "./components/Admin/Household/HouseholdDetail";
 import HouseholdList from "./components/Admin/Household/HouseholdList";
+import UserProfile from "./components/User/UserProfile";
+import ResidenceTable from "./components/Admin/Residence/ResidenceTable";
 const Layout = () => {
   return (
     <>
@@ -52,6 +54,7 @@ const routes = [
         index: true,
         element: <HomePage />,
       },
+      { path: "/profile", element: <UserProfile /> },
     ],
   },
   {
@@ -69,7 +72,7 @@ const routes = [
           { path: ":id", element: <HouseholdDetail /> },
         ],
       },
-      { path: "residence", element: <div>residence</div> },
+      { path: "residence", element: <ResidenceTable /> },
       { path: "certificates", element: <div>certificates</div> },
       { path: "reports", element: <div>reports</div> },
     ],

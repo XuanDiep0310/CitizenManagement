@@ -71,7 +71,6 @@ const ViewDetailHousehold = (props) => {
   const onBack = () => {
     navigate(-1);
   };
-  const onEdit = () => message.info("Edit household");
   const onDelete = () => {
     handleDelete();
   };
