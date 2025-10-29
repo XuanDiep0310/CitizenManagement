@@ -1,126 +1,313 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Button,
   Card,
-  DatePicker,
-  Form,
-  Input,
-  Modal,
-  Popconfirm,
-  Select,
   Table,
   Tabs,
   Tag,
-  message,
   Typography,
+  Space,
+  message,
 } from "antd";
-import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import { ReloadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
-import viVN from "antd/locale/vi_VN";
 import "../../../assets/styles/residenceTable.scss";
+import {
+  callListTemporaryResidencesAPI,
+  callListTemporaryAbsencesAPI,
+} from "../../../services/api.service";
 
+dayjs.locale("vi");
 const { Title, Text } = Typography;
-const { RangePicker } = DatePicker;
 
 const STATUS_COLORS = {
-  active: "green",
-  pending: "gold",
-  completed: "default",
+  Active: "green",
+  Pending: "gold",
+  Completed: "default",
 };
 
+const fmt = (d) => (d ? dayjs(d).format("DD/MM/YYYY") : "—");
+
 const ResidenceTable = () => {
-  const [activeTab, setActiveTab] = useState("residence"); // residence | absence
-  const [records, setRecords] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [form] = Form.useForm();
+  const [activeTab, setActiveTab] = useState("residence"); // "residence" | "absence"
 
-  const filtered = useMemo(
-    () => records.filter((r) => r.type === activeTab),
-    [records, activeTab]
-  );
+  // phân trang & sort dùng chung cho 2 tab (đơn giản)
+  const [loadingTable, setLoadingTable] = useState(false);
+  const [pageSize, setPageSize] = useState(5);
+  const [current, setCurrent] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [sortBy, setSortBy] = useState(null); // e.g. "start_date"
+  const [sortDir, setSortDir] = useState(null); // "asc" | "desc" | null
 
-  const columns = [
-    { title: "Citizen", dataIndex: "citizen", key: "citizen" },
-    { title: "Location", dataIndex: "location", key: "location" },
-    { title: "Reason", dataIndex: "reason", key: "reason" },
-    {
-      title: "Start Date",
-      dataIndex: "startDate",
-      key: "startDate",
-      render: (v) => (v ? dayjs(v).format("DD/MM/YYYY") : "—"),
-      width: 130,
-    },
-    {
-      title: "End Date",
-      dataIndex: "endDate",
-      key: "endDate",
-      render: (v) => (v ? dayjs(v).format("DD/MM/YYYY") : "—"),
-      width: 130,
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      width: 130,
-      render: (s) => <Tag color={STATUS_COLORS[s] || "default"}>{s}</Tag>,
-      filters: [
-        { text: "Active", value: "active" },
-        { text: "Pending", value: "pending" },
-        { text: "Completed", value: "completed" },
-      ],
-      onFilter: (val, record) => record.status === val,
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      width: 120,
-      render: (_, record) => (
-        <Popconfirm
-          title="Delete this record?"
-          okText="Delete"
-          cancelText="Cancel"
-          placement="left"
-          onConfirm={() => handleDelete(record.id)}
-        >
-          <Button danger icon={<DeleteOutlined />}>
-            Delete
-          </Button>
-        </Popconfirm>
-      ),
-    },
-  ];
+  // data per tab
+  const [residenceRows, setResidenceRows] = useState([]);
+  const [absenceRows, setAbsenceRows] = useState([]);
 
-  const handleDelete = (id) => {
-    setRecords((prev) => prev.filter((r) => r.id !== id));
-    message.success("Deleted.");
-  };
-
-  const handleCreate = async () => {
+  // ===== API fetchers with query =====
+  const fetchResidence = useCallback(async () => {
+    setLoadingTable(true);
     try {
-      const values = await form.validateFields();
-      const [start, end] = values.dateRange || [];
-      const newRecord = {
-        id: Date.now(),
-        type: activeTab,
-        citizen: values.citizen.trim(),
-        location: values.location.trim(),
-        reason: values.reason.trim(),
-        startDate: start?.toISOString() ?? null,
-        endDate: end?.toISOString() ?? null,
-        status: values.status,
-      };
-      setRecords((prev) => [newRecord, ...prev]);
-      setOpen(false);
-      form.resetFields();
-      message.success("Record created.");
-    } catch {
-      // validation errors are shown by Form
+      const res = await callListTemporaryResidencesAPI({
+        page: current,
+        size: pageSize,
+        sortBy,
+        sortDir,
+      });
+      const list = Array.isArray(res?.data) ? res.data : [];
+      const rows = list.map((x) => ({
+        key: x.temp_residence_id,
+        id: x.temp_residence_id,
+        citizen_code: x.citizen_code,
+        full_name: x.full_name,
+        phone: x.phone ?? "—",
+        address: x.temporary_address,
+        ward: x.ward_name,
+        district: x.district_name,
+        province: x.province_name,
+        reason: x.reason,
+        start_date: x.start_date,
+        end_date: x.end_date,
+        days_remaining: x.days_remaining,
+        status: x.status,
+        registration_date: x.registration_date,
+        created_at: x.created_at,
+      }));
+      setResidenceRows(rows);
+      setTotal(+res?.total || +res?.meta?.total || list.length);
+    } catch (e) {
+      console.error(e);
+      message.error("Không tải được danh sách tạm trú.");
+    } finally {
+      setLoadingTable(false);
+    }
+  }, [current, pageSize, sortBy, sortDir]);
+
+  const fetchAbsence = useCallback(async () => {
+    setLoadingTable(true);
+    try {
+      const res = await callListTemporaryAbsencesAPI({
+        page: current,
+        size: pageSize,
+        sortBy,
+        sortDir,
+      });
+      console.log(res);
+      const list = Array.isArray(res?.data) ? res.data : [];
+      const rows = list.map((x) => ({
+        key: x.temp_absence_id,
+        id: x.temp_absence_id,
+        citizen_code: x.citizen_code,
+        full_name: x.full_name,
+        phone: x.phone ?? "—",
+        destination: x.destination_address,
+        home_ward: x.home_ward,
+        home_district: x.home_district,
+        reason: x.reason,
+        start_date: x.start_date,
+        expected_return_date: x.expected_return_date,
+        actual_return_date: x.actual_return_date,
+        days_until_return: x.days_until_return,
+        status: x.status,
+        registration_date: x.registration_date,
+        created_at: x.created_at,
+      }));
+      setAbsenceRows(rows);
+      setTotal(+res?.total || +res?.meta?.total || list.length);
+    } catch (e) {
+      console.error(e);
+      message.error("Không tải được danh sách tạm vắng.");
+    } finally {
+      setLoadingTable(false);
+    }
+  }, [current, pageSize, sortBy, sortDir]);
+
+  // ===== initial & when tab/params change =====
+  useEffect(() => {
+    if (activeTab === "residence") fetchResidence();
+    else fetchAbsence();
+  }, [activeTab, fetchResidence, fetchAbsence]);
+
+  // ===== Table events: pagination + sorter =====
+  const handleOnChangePagi = (pagination, _filters, sorter) => {
+    if (pagination?.pageSize && +pagination.pageSize !== +pageSize) {
+      setPageSize(+pagination.pageSize);
+      setCurrent(1);
+    }
+    if (pagination?.current && +pagination.current !== +current) {
+      setCurrent(+pagination.current);
+    }
+
+    if (sorter && sorter.field) {
+      if (sorter.order === "ascend") {
+        setSortBy(sorter.field);
+        setSortDir("asc");
+      } else if (sorter.order === "descend") {
+        setSortBy(sorter.field);
+        setSortDir("desc");
+      } else {
+        setSortBy(null);
+        setSortDir(null);
+      }
     }
   };
 
+  const onRefresh = () => {
+    if (activeTab === "residence") fetchResidence();
+    else fetchAbsence();
+  };
+
+  // ===== Columns =====
+  const residenceCols = useMemo(
+    () => [
+      {
+        title: "Mã công dân",
+        dataIndex: "citizen_code",
+        key: "citizen_code",
+        width: 140,
+      },
+      {
+        title: "Họ tên",
+        dataIndex: "full_name",
+        key: "full_name",
+      },
+      { title: "SĐT", dataIndex: "phone", key: "phone", width: 120 },
+      { title: "Đ/c tạm trú", dataIndex: "address", key: "address" },
+      {
+        title: "Phường/Quận/Tỉnh",
+        key: "pqd",
+        render: (_, r) =>
+          `${r.ward || "—"} / ${r.district || "—"} / ${r.province || "—"}`,
+        responsive: ["lg"],
+      },
+      {
+        title: "Lý do",
+        dataIndex: "reason",
+        key: "reason",
+        width: 140,
+        responsive: ["lg"],
+      },
+      {
+        title: "Bắt đầu",
+        dataIndex: "start_date",
+        key: "start_date",
+        render: fmt,
+        width: 120,
+      },
+      {
+        title: "Kết thúc",
+        dataIndex: "end_date",
+        key: "end_date",
+        render: fmt,
+        width: 120,
+      },
+      {
+        title: "Còn lại (ngày)",
+        dataIndex: "days_remaining",
+        key: "days_remaining",
+        align: "center",
+        width: 130,
+
+        render: (v) => (
+          <Tag color={v > 0 ? "processing" : "default"}>{v ?? "—"}</Tag>
+        ),
+      },
+      {
+        title: "Trạng thái",
+        dataIndex: "status",
+        key: "status",
+        width: 120,
+
+        render: (s) => <Tag color={STATUS_COLORS[s] || "default"}>{s}</Tag>,
+      },
+      {
+        title: "ĐK ngày",
+        dataIndex: "registration_date",
+        key: "registration_date",
+        render: fmt,
+        width: 130,
+        responsive: ["xl"],
+      },
+    ],
+    []
+  );
+
+  const absenceCols = useMemo(
+    () => [
+      {
+        title: "Mã công dân",
+        dataIndex: "citizen_code",
+        key: "citizen_code",
+        width: 140,
+      },
+      {
+        title: "Họ tên",
+        dataIndex: "full_name",
+        key: "full_name",
+      },
+      { title: "SĐT", dataIndex: "phone", key: "phone", width: 120 },
+      { title: "Địa chỉ đến", dataIndex: "destination", key: "destination" },
+      {
+        title: "Phường/Huyện (nhà)",
+        key: "home_addr",
+        render: (_, r) => `${r.home_ward || "—"} / ${r.home_district || "—"}`,
+        responsive: ["lg"],
+      },
+      {
+        title: "Lý do",
+        dataIndex: "reason",
+        key: "reason",
+        width: 140,
+        responsive: ["lg"],
+      },
+      {
+        title: "Bắt đầu",
+        dataIndex: "start_date",
+        key: "start_date",
+        render: fmt,
+        width: 120,
+      },
+      {
+        title: "Dự kiến về",
+        dataIndex: "expected_return_date",
+        key: "expected_return_date",
+        render: fmt,
+        width: 130,
+      },
+      {
+        title: "Thực tế về",
+        dataIndex: "actual_return_date",
+        key: "actual_return_date",
+        render: fmt,
+        width: 130,
+        responsive: ["lg"],
+      },
+      {
+        title: "Còn lại (ngày)",
+        dataIndex: "days_until_return",
+        key: "days_until_return",
+        align: "center",
+        width: 130,
+
+        render: (v) => (
+          <Tag color={v > 0 ? "processing" : "default"}>{v ?? "—"}</Tag>
+        ),
+      },
+      {
+        title: "Trạng thái",
+        dataIndex: "status",
+        key: "status",
+        width: 120,
+
+        render: (s) => <Tag color={STATUS_COLORS[s] || "default"}>{s}</Tag>,
+      },
+    ],
+    []
+  );
+
+  // ===== render =====
   return (
-    <div className="residence-tracker" locale={viVN}>
+    <div className="residence-tracker">
       <div className="residence-header">
         <div>
           <Title level={2} style={{ margin: 0 }}>
@@ -130,14 +317,11 @@ const ResidenceTable = () => {
             Manage temporary residence and absence records
           </Text>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          className="residence-btn-new"
-          onClick={() => setOpen(true)}
-        >
-          New Record
-        </Button>
+        <Space>
+          <Button icon={<ReloadOutlined />} onClick={onRefresh}>
+            Refresh
+          </Button>
+        </Space>
       </div>
 
       <Card className="residence-records">
@@ -149,94 +333,81 @@ const ResidenceTable = () => {
         </div>
 
         <Tabs
-          className="residence-tabs"
           activeKey={activeTab}
-          onChange={setActiveTab}
+          onChange={(key) => {
+            setActiveTab(key);
+            // reset trang khi đổi tab (tùy bạn)
+            setCurrent(1);
+          }}
+          destroyInactiveTabPane
           items={[
-            { key: "residence", label: "Temporary Residence" },
-            { key: "absence", label: "Temporary Absence" },
+            {
+              key: "residence",
+              label: "Temporary Residence",
+              children: (
+                <Table
+                  rowKey="key"
+                  loading={loadingTable}
+                  onChange={handleOnChangePagi}
+                  columns={residenceCols}
+                  dataSource={residenceRows}
+                  pagination={{
+                    current,
+                    pageSize,
+                    total,
+                    showSizeChanger: true,
+                    pageSizeOptions: [5, 10, 20, 50],
+                    showTotal: (t, range) =>
+                      `${range[0]}-${range[1]} trên ${t} rows`,
+                  }}
+                  scroll={{ x: 900 }}
+                  size="middle"
+                  sticky
+                  locale={{
+                    emptyText: (
+                      <span className="residence-no-records">
+                        Không có dữ liệu
+                      </span>
+                    ),
+                  }}
+                />
+              ),
+            },
+            {
+              key: "absence",
+              label: "Temporary Absence",
+              children: (
+                <Table
+                  rowKey="key"
+                  loading={loadingTable}
+                  onChange={handleOnChangePagi}
+                  columns={absenceCols}
+                  dataSource={absenceRows}
+                  pagination={{
+                    current,
+                    pageSize,
+                    total,
+                    showSizeChanger: true,
+                    pageSizeOptions: [5, 10, 20, 50],
+                    showTotal: (t, range) =>
+                      `${range[0]}-${range[1]} trên ${t} rows`,
+                  }}
+                  scroll={{ x: 900 }}
+                  size="middle"
+                  sticky
+                  locale={{
+                    emptyText: (
+                      <span className="residence-no-records">
+                        Không có dữ liệu
+                      </span>
+                    ),
+                  }}
+                />
+              ),
+            },
           ]}
         />
-
-        <div className="residence-table-container">
-          <Table
-            rowKey="id"
-            columns={columns}
-            dataSource={filtered}
-            pagination={{ pageSize: 8, showSizeChanger: true }}
-            locale={{
-              emptyText: (
-                <span className="residence-no-records">No records found</span>
-              ),
-            }}
-          />
-        </div>
       </Card>
-
-      <Modal
-        title={
-          <span className="residence-modal-title">
-            New {activeTab === "residence" ? "Residence" : "Absence"} Record
-          </span>
-        }
-        open={open}
-        onCancel={() => setOpen(false)}
-        onOk={handleCreate}
-        okText="Create"
-        cancelText="Cancel"
-        destroyOnClose
-      >
-        <Form form={form} layout="vertical" preserve={false}>
-          <Form.Item
-            label="Citizen Name"
-            name="citizen"
-            rules={[{ required: true, message: "Please enter citizen name" }]}
-          >
-            <Input placeholder="Enter citizen name" />
-          </Form.Item>
-
-          <Form.Item
-            label="Location"
-            name="location"
-            rules={[{ required: true, message: "Please enter location" }]}
-          >
-            <Input placeholder="Enter location" />
-          </Form.Item>
-
-          <Form.Item
-            label="Reason"
-            name="reason"
-            rules={[{ required: true, message: "Please enter reason" }]}
-          >
-            <Input placeholder="Enter reason" />
-          </Form.Item>
-
-          <Form.Item
-            label="Duration"
-            name="dateRange"
-            rules={[
-              { required: true, message: "Please pick start & end date" },
-            ]}
-          >
-            <RangePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
-          </Form.Item>
-
-          <Form.Item
-            label="Status"
-            name="status"
-            initialValue="active"
-            rules={[{ required: true, message: "Please select status" }]}
-          >
-            <Select
-              options={[
-                { value: "active", label: "Active" },
-                { value: "pending", label: "Pending" },
-                { value: "completed", label: "Completed" },
-              ]}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 };

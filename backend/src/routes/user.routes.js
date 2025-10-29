@@ -1,9 +1,9 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const userController = require('../controllers/user.controller');
-const { verifyToken, verifyRole } = require('../middleware/auth.middleware');
-const { validate } = require('../middleware/validation.middleware');
-const { logAudit } = require('../middleware/audit.middleware');
+const userController = require("../controllers/user.controller");
+const { verifyToken, verifyRole } = require("../middleware/auth.middleware");
+const { validate } = require("../middleware/validation.middleware");
+const { logAudit } = require("../middleware/audit.middleware");
 const {
   createUserValidation,
   updateUserValidation,
@@ -12,10 +12,10 @@ const {
   resetPasswordValidation,
   idParamValidation,
   queryValidation,
-} = require('../validators/user.validator');
+} = require("../validators/user.validator");
 
 // Tat ca routes chi danh cho Admin
-const adminOnly = [verifyToken, verifyRole(['Admin'])];
+const adminOnly = [verifyToken, verifyRole(["Admin"])];
 
 /**
  * @swagger
@@ -65,7 +65,7 @@ const adminOnly = [verifyToken, verifyRole(['Admin'])];
  *         description: Khong co quyen
  */
 router.get(
-  '/',
+  "/",
   ...adminOnly,
   queryValidation,
   validate,
@@ -94,8 +94,8 @@ router.get(
  *         description: Khong tim thay
  */
 router.get(
-  '/:id',
-  ...adminOnly,
+  "/:id",
+  // ...adminOnly,
   idParamValidation,
   validate,
   userController.getUserById
@@ -148,11 +148,11 @@ router.get(
  *         description: Username hoac email da ton tai
  */
 router.post(
-  '/',
+  "/",
   ...adminOnly,
   createUserValidation,
   validate,
-  logAudit('CREATE', 'Users'),
+  logAudit("CREATE", "Users"),
   userController.createUser
 );
 
@@ -193,12 +193,12 @@ router.post(
  *         description: Khong tim thay
  */
 router.put(
-  '/:id',
+  "/:id",
   ...adminOnly,
   idParamValidation,
   updateUserValidation,
   validate,
-  logAudit('UPDATE', 'Users'),
+  logAudit("UPDATE", "Users"),
   userController.updateUser
 );
 
@@ -234,12 +234,12 @@ router.put(
  *         description: Khong tim thay
  */
 router.put(
-  '/:id/role',
+  "/:id/role",
   ...adminOnly,
   idParamValidation,
   updateRoleValidation,
   validate,
-  logAudit('UPDATE', 'Users'),
+  logAudit("UPDATE", "Users"),
   userController.updateUserRole
 );
 
@@ -275,12 +275,12 @@ router.put(
  *         description: Khong tim thay
  */
 router.put(
-  '/:id/status',
+  "/:id/status",
   ...adminOnly,
   idParamValidation,
   updateStatusValidation,
   validate,
-  logAudit('UPDATE', 'Users'),
+  logAudit("UPDATE", "Users"),
   userController.updateUserStatus
 );
 
@@ -307,11 +307,11 @@ router.put(
  *         description: Khong the xoa admin cuoi cung
  */
 router.delete(
-  '/:id',
+  "/:id",
   ...adminOnly,
   idParamValidation,
   validate,
-  logAudit('DELETE', 'Users'),
+  logAudit("DELETE", "Users"),
   userController.deleteUser
 );
 
@@ -348,12 +348,12 @@ router.delete(
  *         description: Khong tim thay
  */
 router.post(
-  '/:id/reset-password',
+  "/:id/reset-password",
   ...adminOnly,
   idParamValidation,
   resetPasswordValidation,
   validate,
-  logAudit('UPDATE', 'Users'),
+  logAudit("UPDATE", "Users"),
   userController.resetUserPassword
 );
 

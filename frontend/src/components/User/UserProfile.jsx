@@ -78,8 +78,10 @@ const UserProfile = () => {
       setLoading(true);
       setFetchError("");
       const res = await callFetchAccount();
+      console.log(res);
       if (res?.data?.userId) {
         const detail = await callUserById(res.data.userId);
+        console.log("detail ", detail);
         if (detail?.data) setPersonalInfo(detail.data);
       } else {
         setFetchError("Không thể xác định tài khoản hiện tại.");
@@ -95,10 +97,8 @@ const UserProfile = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return "Chưa cập nhật";
-    const d = dayjs(dateString);
-    if (!d.isValid()) return "Chưa cập nhật";
-    //  HH:mm DD/MM/YYYY
-    return d.format("HH:mm DD/MM/YYYY");
+    const d = dayjs(dateString).subtract(7, "hour"); // trừ 7h
+    return d.isValid() ? d.format("HH:mm DD/MM/YYYY") : "Chưa cập nhật";
   };
 
   const fullAddress = useMemo(() => {
