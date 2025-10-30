@@ -130,7 +130,9 @@ const ResidenceCreateModal = ({ open, onClose, onCreated }) => {
         notes: v.notes || null,
       };
       setSubmitting(true);
+      console.log(payload);
       const res = await createTemporaryResidencesAPI(payload);
+
       if (res && res.success === true) {
         message.success("Tạo tạm trú thành công");
         form.resetFields();

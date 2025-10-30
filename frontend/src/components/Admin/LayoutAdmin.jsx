@@ -127,7 +127,16 @@ const LayoutAdmin = () => {
             onCollapse={(value) => setCollapsed(value)}
             theme="dark"
           >
-            <h2 style={{ textAlign: "center", marginBottom: "30px" }}>Admin</h2>
+            <h2
+              style={{
+                textAlign: "center",
+                marginBottom: "20px",
+                marginTop: "15px",
+                color: "#fff",
+              }}
+            >
+              Admin
+            </h2>
             <Menu
               theme="dark"
               selectedKeys={[current]}
