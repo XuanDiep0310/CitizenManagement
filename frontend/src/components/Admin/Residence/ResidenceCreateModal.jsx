@@ -9,6 +9,7 @@ import {
   message,
   Select,
   Spin,
+  notification,
 } from "antd";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
@@ -20,6 +21,7 @@ import {
 
 dayjs.locale("vi");
 
+// Debounce nhỏ gọn
 function useDebounce(v, ms = 500) {
   const [d, setD] = useState(v);
   useEffect(() => {
@@ -45,6 +47,7 @@ const ResidenceCreateModal = ({ open, onClose, onCreated }) => {
   const debWard = useDebounce(wardSearch, 400);
   const [loadingWards, setLoadingWards] = useState(false);
 
+  // Fetch citizens
   useEffect(() => {
     if (!open) return;
     (async () => {
@@ -56,12 +59,15 @@ const ResidenceCreateModal = ({ open, onClose, onCreated }) => {
           search: debCitizen || undefined,
         });
         setCitizens(Array.isArray(res?.data) ? res.data : []);
+      } catch (e) {
+        // tránh làm ồn
       } finally {
         setLoadingCitizens(false);
       }
     })();
   }, [debCitizen, open]);
 
+  // Fetch wards
   useEffect(() => {
     if (!open) return;
     (async () => {
@@ -73,6 +79,8 @@ const ResidenceCreateModal = ({ open, onClose, onCreated }) => {
           search: debWard || undefined,
         });
         setWards(Array.isArray(res?.data) ? res.data : []);
+      } catch (e) {
+        // tránh làm ồn
       } finally {
         setLoadingWards(false);
       }
@@ -91,11 +99,11 @@ const ResidenceCreateModal = ({ open, onClose, onCreated }) => {
     [citizens]
   );
 
-  // ward_id giữ NUMBER
+  // ward_id là NUMBER
   const wardOptions = useMemo(
     () =>
       wards.map((w) => ({
-        value: w.ward_id, // number
+        value: Number(w.ward_id), // number
         label: `${w.ward_name} — ${w.district_name || ""} — ${
           w.province_name || ""
         } [${w.ward_code}]`,
@@ -103,27 +111,38 @@ const ResidenceCreateModal = ({ open, onClose, onCreated }) => {
     [wards]
   );
 
+  const handleCancel = () => {
+    form.resetFields();
+    onClose && onClose();
+  };
+
   const onSubmit = async () => {
     try {
       const v = await form.validateFields();
-      setSubmitting(true);
 
       const payload = {
-        citizen_id: v.citizen_id, // string
+        citizen_id: v.citizen_id,
         temporary_address: v.temporary_address,
-        ward_id: Number(v.ward_id), // number
+        ward_id: Number(v.ward_id),
         reason: v.reason || null,
-        start_date: v.start_date, // "YYYY-MM-DD"
-        end_date: v.end_date || null, // "YYYY-MM-DD" | null
+        start_date: v.start_date,
+        end_date: v.end_date || null,
         notes: v.notes || null,
       };
-      console.log(payload);
-      // const res = await createTemporaryResidencesAPI(payload);
-      // console.log("CreateResidence =>", res);
-      // message.success("Tạo tạm trú thành công");
-      form.resetFields();
-      onClose();
-      onCreated && onCreated();
+      setSubmitting(true);
+      const res = await createTemporaryResidencesAPI(payload);
+      if (res && res.success === true) {
+        message.success("Tạo tạm trú thành công");
+        form.resetFields();
+        onClose && onClose();
+        onCreated && onCreated();
+      } else {
+        notification.error({
+          message: "Đã có lỗi xảy ra",
+          description:
+            JSON.stringify(res?.error.message) || JSON.stringify(res?.details),
+        });
+      }
     } catch (e) {
       if (!e?.errorFields) {
         message.error(e?.response?.data?.message || "Tạo tạm trú thất bại");
@@ -133,14 +152,24 @@ const ResidenceCreateModal = ({ open, onClose, onCreated }) => {
     }
   };
 
+  // Validate end_date >= start_date
+  const validateEndDate = (_, value) => {
+    const start = form.getFieldValue("start_date");
+    if (!value || !start) return Promise.resolve();
+    // value & start là STRING YYYY-MM-DD
+    if (
+      dayjs(value, "YYYY-MM-DD").isBefore(dayjs(start, "YYYY-MM-DD"), "day")
+    ) {
+      return Promise.reject(new Error("Ngày kết thúc phải >= ngày bắt đầu"));
+    }
+    return Promise.resolve();
+  };
+
   return (
     <Modal
       title="Thêm tạm trú"
       open={open}
-      onCancel={() => {
-        form.resetFields();
-        onClose();
-      }}
+      onCancel={handleCancel}
       onOk={onSubmit}
       okText="Tạo"
       confirmLoading={submitting}
@@ -149,7 +178,7 @@ const ResidenceCreateModal = ({ open, onClose, onCreated }) => {
       <Form
         form={form}
         layout="vertical"
-        initialValues={{ start_date: dayjs().format("YYYY-MM-DD") }} // <-- string
+        initialValues={{ start_date: dayjs().format("YYYY-MM-DD") }} // lưu string
       >
         <Form.Item
           label="Công dân"
@@ -201,20 +230,37 @@ const ResidenceCreateModal = ({ open, onClose, onCreated }) => {
               label="Ngày bắt đầu"
               name="start_date"
               rules={[{ required: true, message: "Chọn ngày bắt đầu" }]}
+              // Form nhận string từ onChange
+              getValueFromEvent={(_, dateString) => dateString || undefined}
+              // Form render string -> dayjs để hiển thị DatePicker
+              getValueProps={(v) => ({
+                value: v ? dayjs(v, "YYYY-MM-DD") : null,
+              })}
             >
-              <DatePicker
-                format="YYYY-MM-DD" // hiển thị
-                valueFormat="YYYY-MM-DD" // trả về STRING "YYYY-MM-DD"
-                style={{ width: "100%" }}
-              />
+              <DatePicker format="YYYY-MM-DD" style={{ width: "100%" }} />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="Ngày kết thúc (nếu có)" name="end_date">
+            <Form.Item
+              label="Ngày kết thúc (nếu có)"
+              name="end_date"
+              rules={[{ validator: validateEndDate }]}
+              getValueFromEvent={(_, dateString) => dateString || undefined}
+              getValueProps={(v) => ({
+                value: v ? dayjs(v, "YYYY-MM-DD") : null,
+              })}
+            >
               <DatePicker
                 format="YYYY-MM-DD"
-                valueFormat="YYYY-MM-DD" // cũng trả về STRING
                 style={{ width: "100%" }}
+                // Chặn chọn trước start_date
+                disabledDate={(current) => {
+                  const start = form.getFieldValue("start_date");
+                  return start
+                    ? current &&
+                        current < dayjs(start, "YYYY-MM-DD").startOf("day")
+                    : false;
+                }}
               />
             </Form.Item>
           </Col>
