@@ -118,6 +118,49 @@ const createTemporaryAbsencesAPI = (data) => {
   const res = axios.post(URL_BACKEND, data);
   return res;
 };
+
+const callListBirthCertificatesAPI = (query) => {
+  const URL_BACKEND = `api/birth-certificates?${query}`;
+  const res = axios.get(URL_BACKEND);
+  return res;
+};
+const callBirthCertificateByIdAPI = (id) => {
+  const URL_BACKEND = `api/birth-certificates/${id}`;
+  const res = axios.get(URL_BACKEND);
+  return res;
+};
+const createBirthCertificateAPI = (data) => {
+  const URL_BACKEND = `api/birth-certificates`;
+  const res = axios.post(URL_BACKEND, data);
+  return res;
+};
+const updateBirthCertificateAPI = (id, data) => {
+  const URL_BACKEND = `api/birth-certificates/${id}`;
+  const res = axios.put(URL_BACKEND, data);
+  return res;
+};
+const deleteBirthCertificateAPI = (id) => {
+  const URL_BACKEND = `api/birth-certificates/${id}`;
+  const res = axios.delete(URL_BACKEND);
+  return res;
+};
+
+const callListDeathCertificatesAPI = (query) => {
+  const URL_BACKEND = `api/death-certificates?${query}`;
+  const res = axios.get(URL_BACKEND);
+  return res;
+};
+const createDeathCertificateAPI = (data) => {
+  const URL_BACKEND = `api/death-certificates`;
+  const res = axios.post(URL_BACKEND, data);
+  return res;
+};
+const deleteDeathCertificateAPI = (id) => {
+  const URL_BACKEND = `api/death-certificates/${id}`;
+  const res = axios.delete(URL_BACKEND);
+  return res;
+};
+
 const callListUserAPI = (query) => {
   const URL_BACKEND = `/api/v1/user?${query}`;
   const res = axios.get(URL_BACKEND);
@@ -334,4 +377,12 @@ export {
   callListTemporaryAbsencesAPI,
   createTemporaryResidencesAPI,
   createTemporaryAbsencesAPI,
+  callListBirthCertificatesAPI,
+  callBirthCertificateByIdAPI,
+  createBirthCertificateAPI,
+  updateBirthCertificateAPI,
+  deleteBirthCertificateAPI,
+  callListDeathCertificatesAPI,
+  createDeathCertificateAPI,
+  deleteDeathCertificateAPI,
 };

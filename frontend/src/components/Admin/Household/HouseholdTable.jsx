@@ -201,12 +201,14 @@ const HouseholdTable = () => {
       title: "Household Number",
       dataIndex: "household_code",
       key: "household_code",
+      width: 180,
       render: (t) => <span style={{ fontWeight: 500 }}>{t}</span>,
     },
     {
       title: "Household Head",
       dataIndex: "head_full_name",
       key: "head_full_name",
+      width: 200,
       ellipsis: true,
     },
     {
@@ -394,7 +396,7 @@ const HouseholdTable = () => {
               pageSizeOptions: [5, 10, 20, 50],
               showTotal: (t, range) => `${range[0]}-${range[1]} trên ${t} rows`,
             }}
-            scroll={{ x: 1100 }}
+            scroll={{ x: 1400 }}
             size="middle"
             sticky
           />

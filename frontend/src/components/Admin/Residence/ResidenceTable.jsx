@@ -47,12 +47,11 @@ const ResidenceTable = () => {
   const fetchResidence = useCallback(async () => {
     setLoadingTable(true);
     try {
-      const res = await callListTemporaryResidencesAPI({
-        page: current,
-        size: pageSize,
-        sortBy,
-        sortDir,
-      });
+      let query = `page=${current}&pageSize=${pageSize}`;
+      if (sortBy) {
+        query += `&sortBy=${sortBy}&sortDir=${sortDir}`;
+      }
+      const res = await callListTemporaryResidencesAPI(query);
       const list = Array.isArray(res?.data) ? res.data : [];
       const rows = list.map((x) => ({
         key: x.temp_residence_id,
@@ -85,12 +84,11 @@ const ResidenceTable = () => {
   const fetchAbsence = useCallback(async () => {
     setLoadingTable(true);
     try {
-      const res = await callListTemporaryAbsencesAPI({
-        page: current,
-        size: pageSize,
-        sortBy,
-        sortDir,
-      });
+      let query = `page=${current}&pageSize=${pageSize}`;
+      if (sortBy) {
+        query += `&sortBy=${sortBy}&sortDir=${sortDir}`;
+      }
+      const res = await callListTemporaryAbsencesAPI(query);
       const list = Array.isArray(res?.data) ? res.data : [];
       const rows = list.map((x) => ({
         key: x.temp_absence_id,
@@ -164,22 +162,33 @@ const ResidenceTable = () => {
         title: "Họ tên",
         dataIndex: "full_name",
         key: "full_name",
+        width: 180,
       },
       { title: "SĐT", dataIndex: "phone", key: "phone", width: 120 },
-      { title: "Đ/c tạm trú", dataIndex: "address", key: "address" },
+      { title: "Đ/c tạm trú", dataIndex: "address", key: "address", width: 250 },
       {
-        title: "Phường/Quận/Tỉnh",
-        key: "pqd",
-        render: (_, r) =>
-          `${r.ward || "—"} / ${r.district || "—"} / ${r.province || "—"}`,
-        responsive: ["lg"],
+        title: "Phường/Xã",
+        dataIndex: "ward",
+        key: "ward",
+        width: 130,
+      },
+      {
+        title: "Quận/Huyện",
+        dataIndex: "district",
+        key: "district",
+        width: 130,
+      },
+      {
+        title: "Tỉnh/Thành phố",
+        dataIndex: "province",
+        key: "province",
+        width: 130,
       },
       {
         title: "Lý do",
         dataIndex: "reason",
         key: "reason",
         width: 140,
-        responsive: ["lg"],
       },
       {
         title: "Bắt đầu",
@@ -218,7 +227,6 @@ const ResidenceTable = () => {
         key: "registration_date",
         render: fmt,
         width: 130,
-        responsive: ["xl"],
       },
     ],
     []
@@ -236,21 +244,27 @@ const ResidenceTable = () => {
         title: "Họ tên",
         dataIndex: "full_name",
         key: "full_name",
+        width: 180,
       },
       { title: "SĐT", dataIndex: "phone", key: "phone", width: 120 },
-      { title: "Địa chỉ đến", dataIndex: "destination", key: "destination" },
+      { title: "Địa chỉ đến", dataIndex: "destination", key: "destination", width: 250 },
       {
-        title: "Phường/Huyện (nhà)",
-        key: "home_addr",
-        render: (_, r) => `${r.home_ward || "—"} / ${r.home_district || "—"}`,
-        responsive: ["lg"],
+        title: "Phường (nhà)",
+        dataIndex: "home_ward",
+        key: "home_ward",
+        width: 140,
+      },
+      {
+        title: "Huyện (nhà)",
+        dataIndex: "home_district",
+        key: "home_district",
+        width: 140,
       },
       {
         title: "Lý do",
         dataIndex: "reason",
         key: "reason",
         width: 140,
-        responsive: ["lg"],
       },
       {
         title: "Bắt đầu",
@@ -272,7 +286,6 @@ const ResidenceTable = () => {
         key: "actual_return_date",
         render: fmt,
         width: 130,
-        responsive: ["lg"],
       },
       {
         title: "Còn lại (ngày)",
@@ -363,7 +376,7 @@ const ResidenceTable = () => {
                       showTotal: (t, range) =>
                         `${range[0]}-${range[1]} trên ${t} rows`,
                     }}
-                    scroll={{ x: 900 }}
+                    scroll={{ x: 1600 }}
                     size="middle"
                     sticky
                     locale={{
@@ -415,7 +428,7 @@ const ResidenceTable = () => {
                       showTotal: (t, range) =>
                         `${range[0]}-${range[1]} trên ${t} rows`,
                     }}
-                    scroll={{ x: 900 }}
+                    scroll={{ x: 1600 }}
                     size="middle"
                     sticky
                     locale={{
